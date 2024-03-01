@@ -78,4 +78,4 @@ Project Link: [https://github.com/KonradSajdak/depesha](https://github.com/Konra
 [issues-shield]: https://img.shields.io/github/issues/KonradSajdak/depesha.svg?
 [issues-url]: https://github.com/KonradSajdak/depesha/issues
 [license-shield]: https://img.shields.io/github/license/KonradSajdak/depesha.
-[license-url]: https://github.com/KonradSajdak/depesha/blob/master/LICENSE.txt
+[license-url]: https://github.com/KonradSajdak/depesha/blob/main/LICENSE.txt
