@@ -1,8 +1,8 @@
-import { test, expect } from 'vitest'
-import createWelcomeMessage from './index'
+import { test, expect } from "vitest"
+import createWelcomeMessage from "./index"
 
-test('welcome', () => {
+test("welcome", () => {
   const welcome = createWelcomeMessage()
 
-  expect(welcome).toBe('Hello World!')
+  expect(welcome).toBe("Hello World!")
 })

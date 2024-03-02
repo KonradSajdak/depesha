@@ -1,0 +1,4 @@
+pnpm format
+pnpm lint
+pnpm test
+pnpm test:mutation
