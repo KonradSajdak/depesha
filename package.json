@@ -3,7 +3,9 @@
   "private": true,
   "version": "0.0.1",
   "scripts": {
-    "test": "vitest"
+    "test": "vitest --run",
+    "test:mutation": "pnpm -r test:mutation",
+    "test:watch": "vitest"
   },
   "author": "Konrad Sajdak",
   "license": "MIT",
