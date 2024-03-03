@@ -7,7 +7,7 @@
     "lint": "eslint --ext .js,.ts",
     "format": "prettier --write --write \"**/*.+(js|ts|json)\"",
     "test": "vitest --run",
-    "test:mutation": "stryker run",
+    "test:mutation": "stryker run --incremental",
     "test:watch": "vitest"
   },
   "type": "module",
