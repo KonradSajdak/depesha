@@ -41,7 +41,46 @@ Doesn't have something to show yet. Project is in planning, but on the days will
 <!-- ROADMAP -->
 ## Roadmap
 
-Speaking of planning... In few days here will be main roadmap. This will be list of planning features - what i want to build (or we if you want join to contribute).
+This is a list of features that I would like to implement in the future. The list is not exhaustive and may change over time. I want to build a library that is easy to use, but also powerful and flexible.
+
+- [ ] Message construction (Envelope Pattern) and serialization (JSON, Protobuf, Avro, etc.)
+  - [ ] Object or Class based (no abstraction)
+  - [ ] Commands, Events, Queries
+  - [ ] Envelope (Routing)
+  - [ ] Return Address
+- [ ] Composable construction (Builder Pattern?)
+- [ ] Message bus abstraction for synchronous and asynchronous communication
+  - [ ] Point-to-Point
+  - [ ] Publish/Subscribe
+  - [ ] Request/Response
+- [ ] Transports
+  - [ ] In-memory (with Cluster support)
+  - [ ] Message brokers/Streaming platforms
+    - [ ] Redis Streams
+    - [ ] Iggy.rs
+    - [ ] Cloudflare Queues
+    - [ ] RabbitMQ
+    - [ ] Kafka
+  - [ ] HTTP
+  - [ ] WebSockets
+- [ ] Pluginable/Extensible (?)
+- [ ] Message patterns
+  - [ ] Inbox/Outbox
+  - [ ] Routing
+  - [ ] Message transformation (middlewares?)
+- [ ] OpenTelemetry
+  - [ ] Logging
+  - [ ] Metrics (Prometheus)
+  - [ ] Tracing
+- [ ] Patterns
+  - [ ] Saga/Process Manager/Workflow
+  - [ ] CQRS (Read Models, Projections, etc.)
+  - [ ] Event Sourcing
+  - [ ] Event Store (?)
+- [ ] Migrations tools (via message transformation and message routing)
+  - [ ] From one transport to another
+  - [ ] From one serialization to another
+  - [ ] From one message version to another 
 
 
 <!-- LICENSE -->
