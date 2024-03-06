@@ -37,6 +37,14 @@ The main goal of the project is to create a library implementing __message-based
 
 Doesn't have something to show yet. Project is in planning, but on the days will be more, and more 🎉 Planning stuff also. 😎
 
+<!-- CONCEPTS -->
+## Concepts
+
+The library is based on the following concepts (abstraction view):
+<img src="images/core-concept.png" />
+
+Using multiple transports and channels to communicate between different parts of the system. All based on routing via message headers and static routing configuration.
+<img src="images/core-concept-gateway.png" />
 
 <!-- ROADMAP -->
 ## Roadmap
