@@ -116,3 +116,6 @@ Temporary Items
 
 # Test reports
 reports
+
+# Stryker tmp
+.stryker-tmp
