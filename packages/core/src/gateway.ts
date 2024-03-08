@@ -3,7 +3,7 @@
 import { ChannelTransport, ChannelsMapping } from "./channel"
 import { Message, MessageConstruction } from "./message"
 
-type GatewayConfiguration = {
+export type GatewayConfiguration = {
   channels: ChannelsMapping
   routing: Record<string, any>
 }
