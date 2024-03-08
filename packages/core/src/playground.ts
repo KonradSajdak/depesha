@@ -1,4 +1,3 @@
-import { GatewayConfiguration, publishSubscribe } from "./index"
 import { withMemoryTransport } from "./memory"
 import { MessageConstruction } from "./message"
 import { Consumer, Producer, Transport } from "./transport"
