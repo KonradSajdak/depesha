@@ -9,7 +9,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/KonradSajdak/depesha">
-    <img src="images/logo.jpg" alt="Logo" width="500" height="180">
+    <img src="images/logo.jpg" alt="Logo" width="500">
   </a>
 
 <h3 align="center">depesha.</h3>
