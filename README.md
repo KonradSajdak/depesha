@@ -76,7 +76,7 @@ This is a list of features that I would like to implement in the future. The lis
   - [ ] Inbox/Outbox
   - [ ] Routing
   - [ ] Message transformation (middlewares?)
-- UI - Visualisation
+- [ ] UI - Visualisation
   - [ ] Message flow
   - [ ] Message routing
   - [ ] Message transformation
