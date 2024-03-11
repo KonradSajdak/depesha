@@ -1,5 +1,5 @@
 import { test, expect } from "vitest"
 
-test("init test", () => {
+test("queue test", () => {
   expect(true).toBe(true)
 })
