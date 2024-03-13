@@ -118,6 +118,7 @@ Project Link: [https://github.com/KonradSajdak/depesha](https://github.com/Konra
 * [Enterprise Integration Patterns Book](https://www.amazon.com/o/asin/0321200683/ref=nosim/enterpriseint-20)
 * [Redis Streams](https://redis.io/docs/data-types/streams/)
 * [CrossWS](https://crossws.unjs.io/)
+* [Queueable] (https://slikts.github.io/queueable/)
 
 
 
