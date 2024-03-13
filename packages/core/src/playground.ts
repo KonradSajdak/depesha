@@ -1,3 +1,4 @@
+//ts-worksheet
 import { withMemoryTransport } from "./memory"
 import { MessageConstruction } from "./message"
 import { Consumer, Producer, Transport } from "./transport"
@@ -22,16 +23,33 @@ import { Consumer, Producer, Transport } from "./transport"
 
 const transport = withMemoryTransport()
 
-const producer = transport.producer({ topic: "shipping" })
+const producer = transport.producer()
 const consumer = transport.consumer()
 
-const gateway = (config: any) => {}
+const main = async () => {
+  consumer.subscribe(message => {
+    console.log(message)
+  }, "orders")
 
-const x = gateway({
-  channels: {
-    orders: transport,
-    shipping: [producer, consumer],
-    "warehouse-request": [producer, consumer],
-    "warehouse-replay": [producer, consumer],
-  },
-})
+  const result = await producer.send({
+    body: "hello world!",
+    headers: {
+      channel: "orders",
+    },
+  })
+
+  console.log(result)
+}
+
+main()
+
+// const gateway = (config: any) => {}
+
+// const x = gateway({
+//   channels: {
+//     orders: transport,
+//     shipping: [producer, consumer],
+//     "warehouse-request": [producer, consumer],
+//     "warehouse-replay": [producer, consumer],
+//   },
+// })

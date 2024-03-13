@@ -5,8 +5,11 @@ export interface Producer {
 }
 
 export interface Consumer {
-  receive<T>(): Promise<MessageConstruction<T>>
-  subscribe<T>(callback: (message: MessageConstruction<T>) => void): () => void
+  receive<T>(channel?: string): Promise<MessageConstruction<T>>
+  subscribe<T>(
+    callback: (message: MessageConstruction<T>) => void,
+    channel?: string,
+  ): () => void
 }
 
 export interface Transport {

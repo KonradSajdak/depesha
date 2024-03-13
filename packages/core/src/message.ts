@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto"
 
 export interface AvailableMessageHeaders {
   messageId: string
-  viaChannel: string
+  channel: string
 }
 
 export type MessageConstruction<
@@ -31,11 +31,39 @@ export class Message<
     this.id = headers.messageId ?? randomUUID()
   }
 
+  public toConstruction(): MessageConstruction<TBody, THeaders> {
+    return {
+      body: this.body,
+      headers: this.headers,
+    }
+  }
+
+  public getHeader(key: keyof THeaders): THeaders[typeof key] | undefined {
+    return this.headers[key]
+  }
+
   public static createNew<
     TBody = unknown,
     THeaders extends
       Partial<AvailableMessageHeaders> = Partial<AvailableMessageHeaders>,
   >(body: TBody, headers?: THeaders): Message<TBody, THeaders> {
+    return new Message(body, headers)
+  }
+
+  public static createFromConstruction<
+    TBody = unknown,
+    THeaders extends
+      Partial<AvailableMessageHeaders> = Partial<AvailableMessageHeaders>,
+  >(message: MessageConstruction<TBody, THeaders>): Message<TBody, THeaders> {
+    const body =
+      message && typeof message === "object" && "body" in message
+        ? message.body
+        : message
+    const headers =
+      message && typeof message === "object" && "body" in message
+        ? message.headers
+        : undefined
+
     return new Message(body, headers)
   }
 }
