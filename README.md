@@ -62,15 +62,22 @@ This is a list of features that I would like to implement in the future. The lis
   - [ ] Publish/Subscribe
   - [ ] Request/Response
 - [ ] Transports
-  - [ ] In-memory (with Cluster support)
+  - [ ] In-memory
   - [ ] Message brokers/Streaming platforms
     - [ ] Redis Streams
     - [ ] Iggy.rs
     - [ ] Cloudflare Queues
     - [ ] RabbitMQ
     - [ ] Kafka
+    - [ ] MQTT (with Cloudflare Pub/Sub)
+  - [ ] Databases
+    - [ ] MySQL 
+    - [ ] SQLite
+    - [ ] PostgreSQL
+  - [ ] NodeJS Cluster/Threads
   - [ ] HTTP
   - [ ] WebSockets
+  - [ ] Browser
 - [ ] Pluginable/Extensible (?)
 - [ ] Message patterns
   - [ ] Inbox/Outbox
