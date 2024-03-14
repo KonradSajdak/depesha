@@ -72,4 +72,8 @@ export class InMemoryTransport implements Transport {
       },
     }
   }
+
+  public async close() {
+    this.channels.forEach(channel => channel.close())
+  }
 }

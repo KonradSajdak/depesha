@@ -14,6 +14,8 @@ export interface StreamConsumer<T> {
 }
 
 export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
+  private closed: boolean = false
+
   public readonly pushes: Pushed<T>[]
   public readonly pulls: Deferred<T>[]
 
@@ -23,6 +25,10 @@ export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
   }
 
   public async push(value: T): Promise<T> {
+    if (this.closed) {
+      throw new Error("Stream is closed")
+    }
+
     const pulling = this.pulls.shift()
     if (pulling) {
       return pulling.resolve(value)
@@ -35,6 +41,10 @@ export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
   }
 
   public async pull(): Promise<T> {
+    if (this.closed) {
+      throw new Error("Stream is closed")
+    }
+
     const pushing = this.pushes.shift()
 
     if (!pushing) {
@@ -48,5 +58,13 @@ export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
     defer.resolve(value)
 
     return defer.promise
+  }
+
+  public async close() {
+    this.closed = true
+    this.pushes.forEach(
+      ({ defer: { reject } }) => void reject().catch(() => {}),
+    )
+    this.pulls.forEach(({ reject }) => void reject().catch(() => {}))
   }
 }

@@ -53,4 +53,18 @@ describe("Stream", () => {
     // then
     expect(await Promise.all(outputStream)).toEqual(inputStream)
   })
+
+  test("should close the stream", async () => {
+    // given
+    const stream = new Stream<string>()
+    const inputStream = ["A", "B", "C", "D"]
+
+    // when
+    inputStream.forEach(message => stream.push(message))
+    stream.close()
+
+    // then
+    const result = stream.pull()
+    await expect(result).rejects.toThrow("Stream is closed")
+  })
 })
