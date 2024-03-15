@@ -142,3 +142,6 @@ Project Link: [https://github.com/KonradSajdak/depesha](https://github.com/Konra
 [issues-url]: https://github.com/KonradSajdak/depesha/issues
 [license-shield]: https://img.shields.io/github/license/KonradSajdak/depesha.
 [license-url]: https://github.com/KonradSajdak/depesha/blob/main/LICENSE.txt
+
+## Project analytics
+![Alt](https://repobeats.axiom.co/api/embed/2b5d159c744e820476f0db506df5c77afe22ccdd.svg "Repobeats analytics image")
