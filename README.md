@@ -46,8 +46,8 @@ The library is based on the following concepts (abstraction view):
 Using multiple transports and channels to communicate between different parts of the system. All based on routing via message headers and static routing configuration.
 <img src="images/core-concept-gateway.png" />
 
-<!-- ROADMAP -->
-## Roadmap
+<!-- FEATURES -->
+## Features
 
 This is a list of features that I would like to implement in the future. The list is not exhaustive and may change over time. I want to build a library that is easy to use, but also powerful and flexible.
 
@@ -57,6 +57,7 @@ This is a list of features that I would like to implement in the future. The lis
   - [ ] Envelope (Routing)
   - [ ] Return Address
 - [ ] Composable construction (Builder Pattern?)
+- [ ] Partitioning / Sharding - native and hybrid support 
 - [ ] Message bus abstraction for synchronous and asynchronous communication
   - [ ] Point-to-Point
   - [ ] Publish/Subscribe
@@ -125,7 +126,7 @@ Project Link: [https://github.com/KonradSajdak/depesha](https://github.com/Konra
 * [Enterprise Integration Patterns Book](https://www.amazon.com/o/asin/0321200683/ref=nosim/enterpriseint-20)
 * [Redis Streams](https://redis.io/docs/data-types/streams/)
 * [CrossWS](https://crossws.unjs.io/)
-* [Queueable] (https://slikts.github.io/queueable/)
+* [Queueable](https://slikts.github.io/queueable/)
 
 
 
