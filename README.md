@@ -88,6 +88,7 @@ This is a list of features that I would like to implement in the future. The lis
   - [ ] Message flow
   - [ ] Message routing
   - [ ] Message transformation
+- [ ] Playground
 - [ ] OpenTelemetry
   - [ ] Logging
   - [ ] Metrics (Prometheus)
