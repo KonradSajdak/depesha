@@ -27,5 +27,13 @@ export class Channel<T> implements StreamProducer<T> {
   public close() {
     this.buffer.length = 0
     this.consumers.forEach(consumer => consumer.close())
+    this.consumers.length = 0
+  }
+
+  public stats() {
+    return {
+      buffer: this.buffer.length,
+      consumers: this.consumers.length,
+    }
   }
 }

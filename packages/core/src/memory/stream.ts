@@ -62,9 +62,22 @@ export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
 
   public async close() {
     this.closed = true
-    this.pushes.forEach(
-      ({ defer: { reject } }) => void reject().catch(() => {}),
-    )
-    this.pulls.forEach(({ reject }) => void reject().catch(() => {}))
+
+    const reject = (defer: Deferred<T>) => {
+      defer.reject(new Error("Stream was closed")).catch(() => {})
+    }
+
+    this.pushes.forEach(({ defer }) => reject(defer))
+    this.pulls.forEach(defer => reject(defer))
+
+    this.pushes.length = 0
+    this.pulls.length = 0
+  }
+
+  public stats() {
+    return {
+      pushes: this.pushes.length,
+      pulls: this.pulls.length,
+    }
   }
 }
