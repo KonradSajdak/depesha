@@ -1,5 +1,9 @@
 import { describe, expect, test } from "vitest"
 import { Channel } from "./channel"
+import {
+  ChannelClosedAlreadyException,
+  ChannelWasClosedException,
+} from "./exception"
 
 describe("Channel", () => {
   test("should consume a stream concurrently", async () => {
@@ -52,8 +56,8 @@ describe("Channel", () => {
     channel.close()
 
     // then
-    expect(consumer.pull()).rejects.toThrowError("Stream is closed")
-    expect(Promise.all(pushes)).rejects.toThrowError("Stream was closed")
+    expect(consumer.pull()).rejects.toThrow(ChannelClosedAlreadyException)
+    expect(Promise.all(pushes)).rejects.toThrow(ChannelWasClosedException)
     expect(channel.stats()).toEqual({ buffer: 0, consumers: 0 })
   })
 })

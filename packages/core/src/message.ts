@@ -3,7 +3,9 @@ import { randomUUID } from "node:crypto"
 
 export interface AvailableMessageHeaders {
   messageId: string
+  groupId: string
   channel: string
+  partition: number
 }
 
 export type MessageConstruction<
@@ -38,7 +40,7 @@ export class Message<
     }
   }
 
-  public getHeader(key: keyof THeaders): THeaders[typeof key] | undefined {
+  public getHeader<T extends keyof THeaders>(key: T): THeaders[T] {
     return this.headers[key]
   }
 

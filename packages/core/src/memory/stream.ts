@@ -1,4 +1,8 @@
 import { Deferred } from "./deferred"
+import {
+  ChannelClosedAlreadyException,
+  ChannelWasClosedException,
+} from "./exception"
 
 export interface Pushed<T> {
   value: T
@@ -26,7 +30,7 @@ export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
 
   public async push(value: T): Promise<T> {
     if (this.closed) {
-      throw new Error("Stream is closed")
+      throw new ChannelClosedAlreadyException()
     }
 
     const pulling = this.pulls.shift()
@@ -42,7 +46,7 @@ export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
 
   public async pull(): Promise<T> {
     if (this.closed) {
-      throw new Error("Stream is closed")
+      throw new ChannelClosedAlreadyException()
     }
 
     const pushing = this.pushes.shift()
@@ -64,11 +68,13 @@ export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
     this.closed = true
 
     const reject = (defer: Deferred<T>) => {
-      defer.reject(new Error("Stream was closed")).catch(() => {})
+      defer.reject(new ChannelWasClosedException()).catch(() => {})
     }
 
-    this.pushes.forEach(({ defer }) => reject(defer))
-    this.pulls.forEach(defer => reject(defer))
+    await Promise.allSettled([
+      Promise.allSettled(this.pulls.map(defer => reject(defer))),
+      Promise.allSettled(this.pushes.map(({ defer }) => reject(defer))),
+    ])
 
     this.pushes.length = 0
     this.pulls.length = 0

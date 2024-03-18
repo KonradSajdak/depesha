@@ -1,5 +1,9 @@
-import { test, expect, describe, expectTypeOf } from "vitest"
+import { test, expect, describe } from "vitest"
 import { Stream } from "./stream"
+import {
+  ChannelClosedAlreadyException,
+  ChannelWasClosedException,
+} from "./exception"
 
 describe("Stream", () => {
   test("should push a message", async () => {
@@ -66,11 +70,11 @@ describe("Stream", () => {
     expect(stream.stats()).toEqual({ pushes: 4, pulls: 0 })
 
     // when
-    stream.close()
+    await stream.close()
 
     // then
+    expect(Promise.all(pushes)).rejects.toThrow(ChannelWasClosedException)
     expect(stream.stats()).toEqual({ pushes: 0, pulls: 0 })
-    expect(Promise.all(pushes)).rejects.toThrow("Stream was closed")
   })
 
   test("should disable pushing and pulling after closing", async () => {
@@ -78,11 +82,13 @@ describe("Stream", () => {
     const stream = new Stream<string>()
 
     // when
-    stream.close()
+    await stream.close()
 
     // then
-    await expect(stream.push("test")).rejects.toThrow("Stream is closed")
-    await expect(stream.pull()).rejects.toThrow("Stream is closed")
+    await expect(stream.push("test")).rejects.toThrow(
+      ChannelClosedAlreadyException,
+    )
+    await expect(stream.pull()).rejects.toThrow(ChannelClosedAlreadyException)
   })
 
   test("should reject all pending pulls after closing", async () => {
@@ -91,10 +97,10 @@ describe("Stream", () => {
 
     // when
     const pull = stream.pull()
-    stream.close()
+    await stream.close()
 
     // then
-    await expect(pull).rejects.toThrow("Stream was closed")
+    await expect(pull).rejects.toThrow(ChannelWasClosedException)
   })
 
   test("should reject all pending pushes after closing", async () => {
@@ -103,9 +109,9 @@ describe("Stream", () => {
 
     // when
     const push = stream.push("test")
-    stream.close()
+    await stream.close()
 
     // then
-    await expect(push).rejects.toThrow("Stream was closed")
+    await expect(push).rejects.toThrow(ChannelWasClosedException)
   })
 })
