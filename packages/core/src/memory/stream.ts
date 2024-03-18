@@ -9,7 +9,11 @@ export interface Pushed<T> {
   defer: Deferred<T>
 }
 
-export interface StreamProducer<T> {
+export interface AsyncStreamProducer<T> {
+  push(value: T): Promise<any>
+}
+
+export interface SyncStreamProducer<T> {
   push(value: T): Promise<T>
 }
 
@@ -17,7 +21,9 @@ export interface StreamConsumer<T> {
   pull(): Promise<T>
 }
 
-export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
+export class Stream<T>
+  implements SyncStreamProducer<T>, AsyncStreamProducer<T>, StreamConsumer<T>
+{
   private closed: boolean = false
 
   public readonly pushes: Pushed<T>[]

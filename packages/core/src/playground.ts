@@ -1,7 +1,7 @@
 //ts-worksheet
 import { withMemoryTransport } from "./memory"
 import { MessageConstruction } from "./message"
-import { Consumer, Producer, Transport } from "./transport"
+import { Consumer, Producer, Transmission, Transport } from "./transport"
 
 // const ENV = {}
 
@@ -35,6 +35,7 @@ const main = async () => {
     body: "hello world!",
     headers: {
       channel: "orders",
+      transmission: Transmission.SYNC,
     },
   })
 

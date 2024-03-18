@@ -1,5 +1,5 @@
 import { Message, MessageConstruction } from "../message"
-import { Consumer, Producer, Transport } from "../transport"
+import { Consumer, Producer, Transmission, Transport } from "../transport"
 import { Channel } from "./channel"
 import { StreamConsumer } from "./stream"
 
@@ -24,7 +24,17 @@ export class InMemoryTransport implements Transport {
     return {
       send: async <T>(construction: MessageConstruction) => {
         const message = Message.createFromConstruction(construction)
-        return this.channel(message.getHeader("channel")).push(message) as T
+        const transmission =
+          message.getHeader("transmission") ?? Transmission.SYNC
+
+        const channel = this.channel(message.getHeader("channel"))
+
+        if (transmission === Transmission.ASYNC) {
+          channel.push(message)
+          return
+        }
+
+        return channel.push(message) as T
       },
     }
   }

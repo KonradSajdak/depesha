@@ -1,11 +1,13 @@
 // https://www.enterpriseintegrationpatterns.com/patterns/messaging/MessageConstructionIntro.html
 import { randomUUID } from "node:crypto"
+import { Transmission } from "./transport"
 
 export interface AvailableMessageHeaders {
   messageId: string
   groupId: string
   channel: string
   partition: number
+  transmission: Transmission
 }
 
 export type MessageConstruction<

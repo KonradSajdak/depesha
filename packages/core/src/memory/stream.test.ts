@@ -6,7 +6,7 @@ import {
 } from "./exception"
 
 describe("Stream", () => {
-  test("should push a message", async () => {
+  test("should push a message async", async () => {
     // given
     const stream = new Stream<string>()
 
@@ -18,6 +18,19 @@ describe("Stream", () => {
     expect(result).toBe("test")
   })
 
+  test("should push a message sync", async () => {
+    // given
+    const stream = new Stream<string>()
+
+    // when
+    const pushing = stream.push("test")
+    const result = await stream.pull()
+
+    // then
+    expect(result).toBe("test")
+    expect(pushing).resolves.toBe("test")
+  })
+
   test("should pull a message", async () => {
     // given
     const stream = new Stream<string>()
@@ -26,7 +39,7 @@ describe("Stream", () => {
     const result = stream.pull()
 
     // when
-    stream.push("test")
+    await stream.push("test")
 
     // then
     await expect(result).resolves.toBe("test")
@@ -103,7 +116,7 @@ describe("Stream", () => {
     await expect(pull).rejects.toThrow(ChannelWasClosedException)
   })
 
-  test("should reject all pending pushes after closing", async () => {
+  test("should reject all pending sync pushes after closing", async () => {
     // given
     const stream = new Stream<string>()
 

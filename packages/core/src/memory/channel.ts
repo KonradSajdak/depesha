@@ -1,6 +1,13 @@
-import { Stream, StreamConsumer, StreamProducer } from "./stream"
+import {
+  AsyncStreamProducer,
+  Stream,
+  StreamConsumer,
+  SyncStreamProducer,
+} from "./stream"
 
-export class Channel<T> implements StreamProducer<T> {
+export class Channel<T>
+  implements SyncStreamProducer<T>, AsyncStreamProducer<T>
+{
   private readonly buffer: T[] = []
   private readonly consumers: Stream<T>[] = []
 

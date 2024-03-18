@@ -1,7 +1,12 @@
 import { MessageConstruction } from "./message"
 
+export enum Transmission {
+  SYNC = "sync",
+  ASYNC = "async",
+}
+
 export interface Producer {
-  send<T>(message: MessageConstruction): Promise<T>
+  send<T>(message: MessageConstruction<T>): Promise<T | void>
 }
 
 export interface Receiver {
