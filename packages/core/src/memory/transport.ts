@@ -1,5 +1,12 @@
 import { Message, MessageConstruction } from "../message"
-import { Consumer, Producer, Transmission, Transport } from "../transport"
+import {
+  Consumer,
+  ConsumerOptions,
+  Producer,
+  ProducerOptions,
+  Transmission,
+  Transport,
+} from "../transport"
 import { Channel } from "./channel"
 import { StreamConsumer } from "./stream"
 
@@ -20,12 +27,14 @@ export class InMemoryTransport implements Transport {
     return this.channels.get(channel)!
   }
 
-  public producer(): Producer {
+  public producer(options?: ProducerOptions): Producer {
     return {
       send: async <T>(construction: MessageConstruction) => {
         const message = Message.createFromConstruction(construction)
         const transmission =
-          message.getHeader("transmission") ?? Transmission.SYNC
+          message.getHeader("transmission") ??
+          options?.defaultTransmission ??
+          Transmission.SYNC
 
         const channel = this.channel(message.getHeader("channel"))
 
@@ -39,7 +48,7 @@ export class InMemoryTransport implements Transport {
     }
   }
 
-  public consumer(): Consumer {
+  public consumer(options?: ConsumerOptions): Consumer {
     const consumers: Map<PropertyKey, StreamConsumer<Message>> = new Map([
       [DEFAULT_CHANNEL, this.channel().consume()],
     ])

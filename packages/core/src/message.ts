@@ -4,7 +4,6 @@ import { Transmission } from "./transport"
 
 export interface AvailableMessageHeaders {
   messageId: string
-  groupId: string
   channel: string
   partition: number
   transmission: Transmission

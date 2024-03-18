@@ -23,7 +23,7 @@ import { Consumer, Producer, Transmission, Transport } from "./transport"
 
 const transport = withMemoryTransport()
 
-const producer = transport.producer()
+const producer = transport.producer({ defaultTransmission: Transmission.ASYNC })
 const consumer = transport.consumer()
 
 const main = async () => {
@@ -35,7 +35,6 @@ const main = async () => {
     body: "hello world!",
     headers: {
       channel: "orders",
-      transmission: Transmission.SYNC,
     },
   })
 

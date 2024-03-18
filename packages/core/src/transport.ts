@@ -5,6 +5,14 @@ export enum Transmission {
   ASYNC = "async",
 }
 
+export interface ProducerOptions {
+  defaultTransmission?: Transmission
+}
+
+export interface ConsumerOptions {
+  groupId?: string
+}
+
 export interface Producer {
   send<T>(message: MessageConstruction<T>): Promise<T | void>
 }
@@ -23,6 +31,6 @@ export interface Subscriber {
 export interface Consumer extends Receiver, Subscriber {}
 
 export interface Transport {
-  producer(...args: unknown[]): Producer
-  consumer(...args: unknown[]): Consumer
+  producer(options?: ProducerOptions, ...args: unknown[]): Producer
+  consumer(options?: ConsumerOptions, ...args: unknown[]): Consumer
 }

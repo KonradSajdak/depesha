@@ -25,6 +25,29 @@ describe("Channel", () => {
     expect(await Promise.all(outputStreamB)).toEqual(inputStream)
   })
 
+  test("should consume a stream sequentially", async () => {
+    // given
+    const channel = new Channel<string>()
+    const inputStream = ["A", "B", "C", "D"]
+
+    const groupId = "group-1"
+
+    const consumerA = channel.consume({ groupId })
+    const consumerB = channel.consume({ groupId })
+
+    // when
+    inputStream.forEach(message => channel.push(message))
+
+    // then
+    const outputStream = [
+      consumerA.pull(),
+      consumerB.pull(),
+      consumerA.pull(),
+      consumerB.pull(),
+    ]
+    expect(await Promise.all(outputStream)).toEqual(inputStream)
+  })
+
   test("should buffer pushing messages when any consumer registered", async () => {
     // given
     const channel = new Channel<string>()
@@ -45,19 +68,29 @@ describe("Channel", () => {
     const inputStream = ["A", "B", "C", "D"]
 
     const consumer = channel.consume()
+    const groupConsumer = channel.consume({ groupId: "group-1" })
 
     // when
     const pushes = inputStream.map(message => channel.push(message))
 
     // then
-    expect(channel.inspect()).toEqual({ buffer: 0, consumers: 1 })
+    expect(channel.inspect()).toEqual({
+      buffer: 0,
+      consumers: 2,
+      consumerGroups: 1,
+    })
 
     // when
     await channel.close()
 
     // then
     expect(consumer.pull()).rejects.toThrow(ChannelClosedAlreadyException)
+    expect(groupConsumer.pull()).rejects.toThrow(ChannelClosedAlreadyException)
     expect(Promise.all(pushes)).rejects.toThrow(ChannelWasClosedException)
-    expect(channel.inspect()).toEqual({ buffer: 0, consumers: 0 })
+    expect(channel.inspect()).toEqual({
+      buffer: 0,
+      consumers: 0,
+      consumerGroups: 0,
+    })
   })
 })
