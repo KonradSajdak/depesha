@@ -53,7 +53,7 @@ describe("Channel", () => {
     expect(channel.inspect()).toEqual({ buffer: 0, consumers: 1 })
 
     // when
-    channel.close()
+    await channel.close()
 
     // then
     expect(consumer.pull()).rejects.toThrow(ChannelClosedAlreadyException)

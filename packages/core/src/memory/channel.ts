@@ -24,9 +24,9 @@ export class Channel<T> implements StreamProducer<T> {
     return consumer
   }
 
-  public close() {
+  public async close() {
     this.buffer.length = 0
-    this.consumers.forEach(consumer => consumer.close())
+    await Promise.allSettled(this.consumers.map(consumer => consumer.close()))
     this.consumers.length = 0
   }
 

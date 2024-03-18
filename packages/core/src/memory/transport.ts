@@ -74,6 +74,15 @@ export class InMemoryTransport implements Transport {
   }
 
   public async close() {
-    this.channels.forEach(channel => channel.close())
+    await Promise.allSettled(
+      Array.from(this.channels.values()).map(channel => channel.close()),
+    )
+    this.channels.clear()
+  }
+
+  public async inspect() {
+    return {
+      channels: this.channels.size,
+    }
   }
 }
