@@ -30,7 +30,7 @@ export class Channel<T> implements StreamProducer<T> {
     this.consumers.length = 0
   }
 
-  public stats() {
+  public inspect() {
     return {
       buffer: this.buffer.length,
       consumers: this.consumers.length,

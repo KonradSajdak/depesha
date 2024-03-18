@@ -67,14 +67,14 @@ describe("Stream", () => {
     const pushes = inputStream.map(message => stream.push(message))
 
     // then
-    expect(stream.stats()).toEqual({ pushes: 4, pulls: 0 })
+    expect(stream.inspect()).toEqual({ pushes: 4, pulls: 0 })
 
     // when
     await stream.close()
 
     // then
     expect(Promise.all(pushes)).rejects.toThrow(ChannelWasClosedException)
-    expect(stream.stats()).toEqual({ pushes: 0, pulls: 0 })
+    expect(stream.inspect()).toEqual({ pushes: 0, pulls: 0 })
   })
 
   test("should disable pushing and pulling after closing", async () => {

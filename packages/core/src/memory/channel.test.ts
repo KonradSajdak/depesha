@@ -50,7 +50,7 @@ describe("Channel", () => {
     const pushes = inputStream.map(message => channel.push(message))
 
     // then
-    expect(channel.stats()).toEqual({ buffer: 0, consumers: 1 })
+    expect(channel.inspect()).toEqual({ buffer: 0, consumers: 1 })
 
     // when
     channel.close()
@@ -58,6 +58,6 @@ describe("Channel", () => {
     // then
     expect(consumer.pull()).rejects.toThrow(ChannelClosedAlreadyException)
     expect(Promise.all(pushes)).rejects.toThrow(ChannelWasClosedException)
-    expect(channel.stats()).toEqual({ buffer: 0, consumers: 0 })
+    expect(channel.inspect()).toEqual({ buffer: 0, consumers: 0 })
   })
 })

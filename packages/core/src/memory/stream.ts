@@ -80,7 +80,7 @@ export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
     this.pulls.length = 0
   }
 
-  public stats() {
+  public inspect() {
     return {
       pushes: this.pushes.length,
       pulls: this.pulls.length,
