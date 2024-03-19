@@ -26,12 +26,12 @@ export class Stream<T>
 {
   private closed: boolean = false
 
-  public readonly pushes: Pushed<T>[]
-  public readonly pulls: Deferred<T>[]
+  public readonly buffer: Pushed<T>[]
+  public readonly pending: Deferred<T>[]
 
   public constructor() {
-    this.pushes = []
-    this.pulls = []
+    this.buffer = []
+    this.pending = []
   }
 
   public async push(value: T): Promise<T> {
@@ -39,13 +39,13 @@ export class Stream<T>
       throw new ChannelClosedAlreadyException()
     }
 
-    const pulling = this.pulls.shift()
-    if (pulling) {
-      return pulling.resolve(value)
+    const pending = this.pending.shift()
+    if (pending) {
+      return pending.resolve(value)
     }
 
     const defer = new Deferred<T>()
-    this.pushes.push({ value, defer })
+    this.buffer.push({ value, defer })
 
     return defer.promise
   }
@@ -55,16 +55,16 @@ export class Stream<T>
       throw new ChannelClosedAlreadyException()
     }
 
-    const pushing = this.pushes.shift()
+    const message = this.buffer.shift()
 
-    if (!pushing) {
+    if (!message) {
       const defer = new Deferred<T>()
-      this.pulls.push(defer)
+      this.pending.push(defer)
 
       return defer.promise
     }
 
-    const { defer, value } = pushing
+    const { defer, value } = message
     defer.resolve(value)
 
     return defer.promise
@@ -78,18 +78,18 @@ export class Stream<T>
     }
 
     await Promise.allSettled([
-      Promise.allSettled(this.pulls.map(defer => reject(defer))),
-      Promise.allSettled(this.pushes.map(({ defer }) => reject(defer))),
+      Promise.allSettled(this.pending.map(defer => reject(defer))),
+      Promise.allSettled(this.buffer.map(({ defer }) => reject(defer))),
     ])
 
-    this.pushes.length = 0
-    this.pulls.length = 0
+    this.buffer.length = 0
+    this.pending.length = 0
   }
 
   public inspect() {
     return {
-      pushes: this.pushes.length,
-      pulls: this.pulls.length,
+      pushes: this.buffer.length,
+      pulls: this.pending.length,
     }
   }
 }
