@@ -19,10 +19,14 @@ describe("Channel", () => {
 
     // then
     const outputStreamA = inputStream.map(() => consumerA.pull())
-    expect(await Promise.all(outputStreamA)).toEqual(inputStream)
+    expect(
+      (await Promise.all(outputStreamA)).map(message => message.value),
+    ).toEqual(inputStream)
 
     const outputStreamB = inputStream.map(() => consumerB.pull())
-    expect(await Promise.all(outputStreamB)).toEqual(inputStream)
+    expect(
+      (await Promise.all(outputStreamB)).map(message => message.value),
+    ).toEqual(inputStream)
   })
 
   test("should consume a stream sequentially", async () => {
@@ -45,7 +49,9 @@ describe("Channel", () => {
       consumerA.pull(),
       consumerB.pull(),
     ]
-    expect(await Promise.all(outputStream)).toEqual(inputStream)
+    expect(
+      (await Promise.all(outputStream)).map(message => message.value),
+    ).toEqual(inputStream)
   })
 
   test("should buffer pushing messages when any consumer registered", async () => {
@@ -59,7 +65,9 @@ describe("Channel", () => {
     // then
     const consumer = channel.consume()
     const outputStream = inputStream.map(() => consumer.pull())
-    expect(await Promise.all(outputStream)).toEqual(inputStream)
+    expect(
+      (await Promise.all(outputStream)).map(message => message.value),
+    ).toEqual(inputStream)
   })
 
   test("should close the channel", async () => {

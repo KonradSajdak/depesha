@@ -3,10 +3,18 @@ import {
   ChannelClosedAlreadyException,
   ChannelWasClosedException,
 } from "./exception"
+import { LinkedList } from "./linked-list"
 
 export interface Pushed<T> {
   value: T
+  // locked: boolean;
   defer: Deferred<T>
+}
+
+export interface Pending<T> {
+  value: T
+  commit: () => void
+  rollback: () => void
 }
 
 export interface AsyncStreamProducer<T> {
@@ -18,77 +26,171 @@ export interface SyncStreamProducer<T> {
 }
 
 export interface StreamConsumer<T> {
-  pull(): Promise<T>
+  pull(): Promise<Pending<T>>
+}
+
+export interface StreamOptions {
+  autoCommit?: boolean
 }
 
 export class Stream<T>
   implements SyncStreamProducer<T>, AsyncStreamProducer<T>, StreamConsumer<T>
 {
   private closed: boolean = false
+  private autoCommit: boolean
 
-  public readonly buffer: Pushed<T>[]
-  public readonly pending: Deferred<T>[]
+  public readonly stream: LinkedList<Pushed<T>>
+  public readonly pending: Deferred<Pending<T>>[]
 
-  public constructor() {
-    this.buffer = []
+  // private pointer: Node<Pushed<T>> | null = null;
+
+  public constructor(options?: StreamOptions) {
+    this.stream = new LinkedList()
     this.pending = []
+
+    this.autoCommit = options?.autoCommit ?? true
   }
+
+  // private lockAndDefer(node: Node<Pushed<T>>) {
+  //   this.pointer = node;
+  //   node.data.locked = true;
+
+  //   let commitAlready = false;
+  //   let rollbackAlready = false;
+
+  //   if (this.autoCommit) {
+  //     this.pointer = node.prev;
+  //     this.stream.delete(node);
+  //     node.data.defer.resolve(node.data.value);
+  //     commitAlready = true;
+  //   }
+
+  //   return {
+  //     value: node.data.value,
+  //     commit: () => {
+  //       if (commitAlready) {
+  //         throw new Error("Commited already.");
+  //       }
+
+  //       if (rollbackAlready) {
+  //         throw new Error("Rollback already.");
+  //       }
+
+  //       this.pointer =
+  //         node.prev && this.pointer
+  //           ? node.prev.seq < this.pointer.seq
+  //             ? node.prev
+  //             : this.pointer
+  //           : null;
+  //       this.stream.delete(node);
+  //       node.data.defer.resolve(node.data.value);
+  //       commitAlready = true;
+  //     },
+  //     rollback: () => {
+  //       if (commitAlready) {
+  //         throw new Error("Commited already.");
+  //       }
+
+  //       if (rollbackAlready) {
+  //         throw new Error("Rollback already.");
+  //       }
+
+  //       this.pointer =
+  //         node.prev && this.pointer
+  //           ? node.prev.seq < this.pointer.seq
+  //             ? node.prev
+  //             : this.pointer
+  //           : null;
+  //       node.data.locked = false;
+  //       rollbackAlready = true;
+  //     },
+  //   };
+  // }
 
   public async push(value: T): Promise<T> {
     if (this.closed) {
       throw new ChannelClosedAlreadyException()
     }
 
+    const defer = new Deferred<T>()
+
     const pending = this.pending.shift()
     if (pending) {
-      return pending.resolve(value)
+      const node = this.stream.appendWithLock({ value, defer })
+
+      const message = {
+        value,
+        commit: () => {
+          node.commit()
+          return defer.resolve(value)
+        },
+        rollback: node.rollback,
+      }
+
+      if (this.autoCommit) {
+        await message.commit()
+      }
+
+      return pending.resolve(message).then(() => defer.promise)
     }
 
-    const defer = new Deferred<T>()
-    this.buffer.push({ value, defer })
-
+    this.stream.append({ value, defer })
     return defer.promise
   }
 
-  public async pull(): Promise<T> {
+  public async pull(): Promise<Pending<T>> {
     if (this.closed) {
       throw new ChannelClosedAlreadyException()
     }
 
-    const message = this.buffer.shift()
+    const next = this.stream.shiftWithLock()
 
-    if (!message) {
-      const defer = new Deferred<T>()
+    if (!next) {
+      const defer = new Deferred<Pending<T>>()
       this.pending.push(defer)
 
       return defer.promise
     }
 
-    const { defer, value } = message
-    defer.resolve(value)
+    const { value, defer } = next.value
 
-    return defer.promise
+    const message = {
+      value: value,
+      commit: () => {
+        next.commit()
+        return defer.resolve(value)
+      },
+      rollback: next.rollback,
+    }
+
+    if (this.autoCommit) {
+      await message.commit()
+    }
+
+    return message
   }
 
   public async close() {
     this.closed = true
 
-    const reject = (defer: Deferred<T>) => {
+    const reject = (defer: Deferred<any>) => {
       defer.reject(new ChannelWasClosedException()).catch(() => {})
     }
 
     await Promise.allSettled([
       Promise.allSettled(this.pending.map(defer => reject(defer))),
-      Promise.allSettled(this.buffer.map(({ defer }) => reject(defer))),
+      Promise.allSettled(
+        this.stream.map(({ defer }) => reject(defer)).toArray(),
+      ),
     ])
 
-    this.buffer.length = 0
+    this.stream.erase()
     this.pending.length = 0
   }
 
   public inspect() {
     return {
-      pushes: this.buffer.length,
+      pushes: this.stream.size(),
       pulls: this.pending.length,
     }
   }

@@ -66,7 +66,7 @@ export class InMemoryTransport implements Transport {
     return {
       receive: async <T>(channel?: string) => {
         const message = await consumeFrom(channel).pull()
-        return message.toConstruction() as MessageConstruction<T>
+        return message.value.toConstruction() as MessageConstruction<T>
       },
 
       subscribe: <T>(
@@ -79,7 +79,7 @@ export class InMemoryTransport implements Transport {
           const message = await consumeFrom(channel).pull()
           if (unsubscribed) return
 
-          callback(message.toConstruction() as MessageConstruction<T>)
+          callback(message.value.toConstruction() as MessageConstruction<T>)
           await waitForNextMessage()
         }
 
