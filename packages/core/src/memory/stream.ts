@@ -7,7 +7,6 @@ import { LinkedList } from "./linked-list"
 
 export interface Pushed<T> {
   value: T
-  // locked: boolean;
   defer: Deferred<T>
 }
 
@@ -42,70 +41,12 @@ export class Stream<T>
   public readonly stream: LinkedList<Pushed<T>>
   public readonly pending: Deferred<Pending<T>>[]
 
-  // private pointer: Node<Pushed<T>> | null = null;
-
   public constructor(options?: StreamOptions) {
     this.stream = new LinkedList()
     this.pending = []
 
     this.autoCommit = options?.autoCommit ?? true
   }
-
-  // private lockAndDefer(node: Node<Pushed<T>>) {
-  //   this.pointer = node;
-  //   node.data.locked = true;
-
-  //   let commitAlready = false;
-  //   let rollbackAlready = false;
-
-  //   if (this.autoCommit) {
-  //     this.pointer = node.prev;
-  //     this.stream.delete(node);
-  //     node.data.defer.resolve(node.data.value);
-  //     commitAlready = true;
-  //   }
-
-  //   return {
-  //     value: node.data.value,
-  //     commit: () => {
-  //       if (commitAlready) {
-  //         throw new Error("Commited already.");
-  //       }
-
-  //       if (rollbackAlready) {
-  //         throw new Error("Rollback already.");
-  //       }
-
-  //       this.pointer =
-  //         node.prev && this.pointer
-  //           ? node.prev.seq < this.pointer.seq
-  //             ? node.prev
-  //             : this.pointer
-  //           : null;
-  //       this.stream.delete(node);
-  //       node.data.defer.resolve(node.data.value);
-  //       commitAlready = true;
-  //     },
-  //     rollback: () => {
-  //       if (commitAlready) {
-  //         throw new Error("Commited already.");
-  //       }
-
-  //       if (rollbackAlready) {
-  //         throw new Error("Rollback already.");
-  //       }
-
-  //       this.pointer =
-  //         node.prev && this.pointer
-  //           ? node.prev.seq < this.pointer.seq
-  //             ? node.prev
-  //             : this.pointer
-  //           : null;
-  //       node.data.locked = false;
-  //       rollbackAlready = true;
-  //     },
-  //   };
-  // }
 
   public async push(value: T): Promise<T> {
     if (this.closed) {
