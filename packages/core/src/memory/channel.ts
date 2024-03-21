@@ -8,12 +8,23 @@ import {
 export interface ChannelConsumerOptions {
   groupId?: string
 }
+
+export interface ChannelOptions {
+  autoCommit?: boolean
+}
+
 export class Channel<T>
   implements SyncStreamProducer<T>, AsyncStreamProducer<T>
 {
+  private readonly autoCommit?: boolean
+
   private readonly buffer: T[] = []
   private readonly consumers: Stream<T>[] = []
   private readonly consumerGroups: Map<PropertyKey, number> = new Map()
+
+  public constructor(options?: ChannelOptions) {
+    this.autoCommit = options?.autoCommit
+  }
 
   public async push(value: T): Promise<T> {
     if (this.consumers.length === 0) {
@@ -33,7 +44,7 @@ export class Channel<T>
       }
     }
 
-    const consumer = new Stream<T>()
+    const consumer = new Stream<T>({ autoCommit: this.autoCommit })
     const consumersTotal = this.consumers.push(consumer)
 
     if (options?.groupId) {
