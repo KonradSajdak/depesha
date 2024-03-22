@@ -51,19 +51,24 @@ Using multiple transports and channels to communicate between different parts of
 
 This is a list of features that I would like to implement in the future. The list is not exhaustive and may change over time. I want to build a library that is easy to use, but also powerful and flexible.
 
-- [ ] Message construction (Envelope Pattern) and serialization (JSON, Protobuf, Avro, etc.)
-  - [ ] Object or Class based (no abstraction)
+- [X] Message construction (Envelope Pattern) 
+  - [ ] Serialization (JSON, Protobuf, Avro, etc.)
+  - [X] Object or Class based (no abstraction)
+  - [X] Headers/Envelope
+    - [ ] Routing
+    - [ ] Return Address
   - [ ] Commands, Events, Queries
-  - [ ] Envelope (Routing)
-  - [ ] Return Address
 - [ ] Composable construction (Builder Pattern?)
 - [ ] Partitioning / Sharding - native and hybrid support 
-- [ ] Message bus abstraction for synchronous and asynchronous communication
+- [X] Message bus abstraction for synchronous and asynchronous communication
   - [ ] Point-to-Point
   - [ ] Publish/Subscribe
   - [ ] Request/Response
-- [ ] Transports
-  - [ ] In-memory
+- [X] Transports
+  - [X] In-memory
+    - [X] Ack/Nack
+    - [X] Consumers Groups
+    - [ ] Partitioning
   - [ ] Message brokers/Streaming platforms
     - [ ] Redis Streams
     - [ ] Iggy.rs
