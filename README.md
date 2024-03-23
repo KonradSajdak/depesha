@@ -64,6 +64,7 @@ This is a list of features that I would like to implement in the future. The lis
   - [ ] Point-to-Point
   - [ ] Publish/Subscribe
   - [ ] Request/Response
+- [ ] Hybrid-adaptive patterns blocks
 - [X] Transports
   - [X] In-memory
     - [X] Ack/Nack
