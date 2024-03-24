@@ -30,7 +30,7 @@
 
 ## About The Project
 
-The main goal of the project is to create a library implementing __message-based system__ integration patterns in TypeScript, enabling the deferral of decisions regarding the infrastructure layer as far into the future as possible. This includes seamless switching between __synchronous__ and __asynchronous communication__, various message transport options such as __in-memory__ and __message brokers__, as well as patterns like __inbox/outbox__, __routing__, and __message transformations__. All of this is intended to be achieved independently of the JavaScript runtime environment (edge too).
+The main goal of the project is to create a library implementing __message-based system__ integration patterns in TypeScript, enabling the deferral of decisions regarding the infrastructure layer as far into the future as possible. This includes seamless switching between __synchronous__ and __asynchronous communication__, various message transport options such as __in-memory__ and __message brokers__, as well as patterns like __inbox/outbox__, __routing__, and __message transformations__. All of this is intended to be achieved independently of the JavaScript runtime environment (edge too 😎).
 
 
 <!-- GETTING STARTED -->
