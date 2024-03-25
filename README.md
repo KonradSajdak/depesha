@@ -62,8 +62,8 @@ This is a list of features that I would like to implement in the future. The lis
 - [ ] Composable construction (Builder Pattern?)
 - [ ] Partitioning / Sharding - native and hybrid support 
 - [X] Message bus abstraction for synchronous and asynchronous communication
-  - [ ] Point-to-Point
-  - [ ] Publish/Subscribe
+  - [X] Point-to-Point
+  - [X] Publish/Subscribe
   - [ ] Request/Response
 - [ ] Hybrid-adaptive patterns blocks
 - [X] Transports
