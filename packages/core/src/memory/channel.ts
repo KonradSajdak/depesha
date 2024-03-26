@@ -7,6 +7,7 @@ import {
 
 export interface ChannelConsumerOptions {
   groupId?: string
+  partition?: number
 }
 
 export interface ChannelOptions {
@@ -19,7 +20,7 @@ export class Channel<T>
   private readonly autoCommit?: boolean
 
   private readonly buffer: T[] = []
-  private readonly consumers: Stream<T>[] = []
+  private readonly streams: Stream<T>[] = []
   private readonly consumerGroups: Map<PropertyKey, number> = new Map()
 
   public constructor(options?: ChannelOptions) {
@@ -27,12 +28,12 @@ export class Channel<T>
   }
 
   public async push(value: T): Promise<T> {
-    if (this.consumers.length === 0) {
+    if (this.streams.length === 0) {
       this.buffer.push(value)
       return Promise.resolve(value)
     }
 
-    await Promise.all(this.consumers.map(consumer => consumer.push(value)))
+    await Promise.all(this.streams.map(consumer => consumer.push(value)))
     return Promise.resolve(value)
   }
 
@@ -40,12 +41,12 @@ export class Channel<T>
     if (options?.groupId) {
       const groupConsumerIndex = this.consumerGroups.get(options.groupId)
       if (groupConsumerIndex !== undefined) {
-        return this.consumers[groupConsumerIndex]
+        return this.streams[groupConsumerIndex]
       }
     }
 
-    const consumer = new Stream<T>({ autoCommit: this.autoCommit })
-    const consumersTotal = this.consumers.push(consumer)
+    const stream = new Stream<T>({ autoCommit: this.autoCommit })
+    const consumersTotal = this.streams.push(stream)
 
     if (options?.groupId) {
       this.consumerGroups.set(options.groupId, consumersTotal - 1)
@@ -54,20 +55,20 @@ export class Channel<T>
     this.buffer.forEach(message => this.push(message))
     this.buffer.length = 0
 
-    return consumer
+    return stream
   }
 
   public async close() {
     this.buffer.length = 0
-    await Promise.allSettled(this.consumers.map(consumer => consumer.close()))
-    this.consumers.length = 0
+    await Promise.allSettled(this.streams.map(consumer => consumer.close()))
+    this.streams.length = 0
     this.consumerGroups.clear()
   }
 
   public inspect() {
     return {
       buffer: this.buffer.length,
-      consumers: this.consumers.length,
+      consumers: this.streams.length,
       consumerGroups: this.consumerGroups.size,
     }
   }
