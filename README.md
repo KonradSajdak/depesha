@@ -58,6 +58,7 @@ This is a list of features that I would like to implement in the future. The lis
   - [X] Headers/Envelope
     - [ ] Routing
     - [ ] Return Address
+    - [X] Consumers Groups
   - [ ] Commands, Events, Queries
 - [ ] Composable construction (Builder Pattern?)
 - [ ] Partitioning / Sharding - native and hybrid support 
