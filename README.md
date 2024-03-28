@@ -57,7 +57,7 @@ This is a list of features that I would like to implement in the future. The lis
   - [X] Object or Class based (no abstraction)
   - [X] Headers/Envelope
     - [ ] Routing
-    - [ ] Return Address
+    - [X] Return Address
     - [X] Consumers Groups
   - [ ] Commands, Events, Queries
 - [ ] Composable construction (Builder Pattern?)
