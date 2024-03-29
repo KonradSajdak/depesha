@@ -24,8 +24,11 @@ export interface SyncStreamProducer<T> {
   push(value: T): Promise<T>
 }
 
+export type StreamProducer<T> = SyncStreamProducer<T> | AsyncStreamProducer<T>
+
 export interface StreamConsumer<T> {
   pull(): Promise<Pending<T>>
+  pipe(producer: StreamProducer<T>): StreamProducer<T>
 }
 
 export interface StreamOptions {
@@ -109,6 +112,21 @@ export class Stream<T>
     }
 
     return message
+  }
+
+  public pipe(stream: StreamProducer<T>) {
+    const pipeTo = async () => {
+      if (this.closed) return
+
+      const message = await this.pull()
+      await stream.push(message.value)
+
+      pipeTo()
+    }
+
+    pipeTo()
+
+    return stream
   }
 
   public async close() {
