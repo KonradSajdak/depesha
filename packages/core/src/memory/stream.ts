@@ -119,7 +119,10 @@ export class Stream<T>
       if (this.closed) return
 
       const message = await this.pull()
-      await stream.push(message.value)
+      await stream
+        .push(message.value)
+        .then(() => message.commit())
+        .catch(() => message.rollback())
 
       pipeTo()
     }
