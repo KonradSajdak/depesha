@@ -1,3 +1,4 @@
+import { ConsumerGroup } from "./consumer-group"
 import {
   AsyncStreamProducer,
   Stream,
@@ -7,6 +8,9 @@ import {
 
 export interface ChannelConsumerOptions {
   groupId?: string
+}
+
+export interface ChannelProducingOptions {
   partition?: number
 }
 
@@ -20,55 +24,53 @@ export class Channel<T>
   private readonly autoCommit?: boolean
 
   private readonly buffer: T[] = []
-  private readonly streams: Stream<T>[] = []
+  private readonly consumers: Map<PropertyKey, ConsumerGroup<T>> = new Map()
   private readonly consumerGroups: Map<PropertyKey, number> = new Map()
 
   public constructor(options?: ChannelOptions) {
     this.autoCommit = options?.autoCommit
   }
 
-  public async push(value: T): Promise<T> {
-    if (this.streams.length === 0) {
+  public async push(value: T, options?: ChannelProducingOptions): Promise<T> {
+    if (this.consumers.size === 0) {
       this.buffer.push(value)
       return Promise.resolve(value)
     }
 
-    await Promise.all(this.streams.map(consumer => consumer.push(value)))
+    await Promise.all(
+      Array.from(this.consumers.values()).map(consumer =>
+        consumer.push(value, options),
+      ),
+    )
     return Promise.resolve(value)
   }
 
   public consume(options?: ChannelConsumerOptions): StreamConsumer<T> {
-    if (options?.groupId) {
-      const groupConsumerIndex = this.consumerGroups.get(options.groupId)
-      if (groupConsumerIndex !== undefined) {
-        return this.streams[groupConsumerIndex]
-      }
+    const groupId = options?.groupId ?? Symbol()
+
+    if (!this.consumers.has(groupId)) {
+      this.consumers.set(groupId, new ConsumerGroup<T>())
     }
 
-    const stream = new Stream<T>({ autoCommit: this.autoCommit })
-    const consumersTotal = this.streams.push(stream)
-
-    if (options?.groupId) {
-      this.consumerGroups.set(options.groupId, consumersTotal - 1)
-    }
+    const consumerGroup = this.consumers.get(groupId)!
 
     this.buffer.forEach(message => this.push(message))
     this.buffer.length = 0
 
-    return stream
+    return consumerGroup.consume()
   }
 
   public async close() {
     this.buffer.length = 0
-    await Promise.allSettled(this.streams.map(consumer => consumer.close()))
-    this.streams.length = 0
+    // await Promise.allSettled(Array.from(this.consumers.values()).map(consumer => consumer.close()))
+    this.consumers.clear()
     this.consumerGroups.clear()
   }
 
   public inspect() {
     return {
       buffer: this.buffer.length,
-      consumers: this.streams.length,
+      consumers: this.consumers.size,
       consumerGroups: this.consumerGroups.size,
     }
   }

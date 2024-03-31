@@ -35,11 +35,14 @@ export interface StreamOptions {
   autoCommit?: boolean
 }
 
+export type UnpipeCallback = () => void
+
 export class Stream<T>
   implements SyncStreamProducer<T>, AsyncStreamProducer<T>, StreamConsumer<T>
 {
   private closed: boolean = false
   private autoCommit: boolean
+  private pipes: Map<StreamProducer<T>, UnpipeCallback> = new Map()
 
   public readonly stream: LinkedList<Pushed<T>>
   public readonly pending: Deferred<Pending<T>>[]
@@ -115,8 +118,10 @@ export class Stream<T>
   }
 
   public pipe(stream: StreamProducer<T>) {
-    const pipeTo = async () => {
-      if (this.closed) return
+    let unsubscribed = false
+
+    const waitForMessage = async () => {
+      if (this.closed || unsubscribed) return
 
       const message = await this.pull()
       await stream
@@ -124,12 +129,28 @@ export class Stream<T>
         .then(() => message.commit())
         .catch(() => message.rollback())
 
-      pipeTo()
+      waitForMessage()
     }
 
-    pipeTo()
+    this.pipes.set(stream, () => {
+      unsubscribed = true
+      this.pipes.delete(stream)
+    })
+
+    waitForMessage()
 
     return stream
+  }
+
+  public unpipe(stream: StreamProducer<T>) {
+    const unsubscribe = this.pipes.get(stream)
+    if (unsubscribe) {
+      unsubscribe()
+    }
+  }
+
+  public unpipeAll() {
+    this.pipes.forEach(unsubscribe => unsubscribe())
   }
 
   public async close() {
