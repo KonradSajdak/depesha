@@ -19,58 +19,48 @@ export interface ChannelOptions {
   autoCommit?: boolean
 }
 
-export class Channel<T>
+export class Broadcaster<T>
   implements SyncStreamProducer<T>, AsyncStreamProducer<T>
 {
   private readonly autoCommit?: boolean
 
   private readonly buffer: T[] = []
-  private readonly consumers: Map<PropertyKey, ConsumerGroup<T>> = new Map()
-  private readonly consumerGroups: Map<PropertyKey, number> = new Map()
+  private readonly consumers: Stream<T>[] = []
 
   public constructor(options?: ChannelOptions) {
     this.autoCommit = options?.autoCommit
   }
 
   public async push(value: T, options?: ChannelProducingOptions): Promise<T> {
-    if (this.consumers.size === 0) {
+    if (this.consumers.length === 0) {
       this.buffer.push(value)
       return Promise.resolve(value)
     }
 
-    await Promise.all(
-      Array.from(this.consumers.values()).map(consumer => consumer.push(value)),
-    )
+    await Promise.all(this.consumers.map(consumer => consumer.push(value)))
     return Promise.resolve(value)
   }
 
-  public consume(options?: ChannelConsumerOptions): StreamConsumer<T> {
-    const groupId = options?.groupId ?? Symbol()
-
-    if (!this.consumers.has(groupId)) {
-      this.consumers.set(groupId, new ConsumerGroup<T>())
-    }
-
-    const consumerGroup = this.consumers.get(groupId)!
+  public consume(): StreamConsumer<T> {
+    const consumer = new Stream<T>({ autoCommit: this.autoCommit })
+    this.consumers.push(consumer)
 
     this.buffer.forEach(message => this.push(message))
     this.buffer.length = 0
 
-    return consumerGroup
+    return consumer
   }
 
   public async close() {
     this.buffer.length = 0
-    // await Promise.allSettled(Array.from(this.consumers.values()).map(consumer => consumer.close()))
-    this.consumers.clear()
-    this.consumerGroups.clear()
+    await Promise.allSettled(this.consumers.map(consumer => consumer.close()))
+    this.consumers.length = 0
   }
 
   public inspect() {
     return {
       buffer: this.buffer.length,
-      consumers: this.consumers.size,
-      consumerGroups: this.consumerGroups.size,
+      consumers: this.consumers.length,
     }
   }
 }

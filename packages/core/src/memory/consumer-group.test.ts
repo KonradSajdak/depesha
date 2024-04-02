@@ -1,12 +1,11 @@
 import { describe, expect, test } from "vitest"
-import { Channel } from "./channel"
-// import { ConsumerGroup as Channel } from "./consumer-group"
+import { ConsumerGroup as Channel } from "./consumer-group"
 import {
   ChannelClosedAlreadyException,
   ChannelWasClosedException,
 } from "./exception"
 
-describe("Channel", () => {
+describe("ConsumerGroup", () => {
   test("should consume a stream concurrently", async () => {
     // given
     const channel = new Channel<string>()

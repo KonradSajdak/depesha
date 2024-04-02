@@ -259,8 +259,8 @@ describe("LinkedList (controlled)", () => {
     nodeA.commit()
 
     // then
-    expect(() => nodeA.commit()).toThrow("Commited already.")
-    expect(() => nodeA.rollback()).toThrow("Commited already.")
+    expect(() => nodeA.commit()).toThrow("Committed already.")
+    expect(() => nodeA.rollback()).toThrow("Committed already.")
 
     // when
     const nodeB = list.shiftWithLock()!

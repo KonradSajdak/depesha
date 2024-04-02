@@ -176,8 +176,8 @@ describe("Stream", () => {
     messageA.commit()
 
     // then
-    expect(() => messageA.commit()).toThrow("Commited already.")
-    expect(() => messageA.rollback()).toThrow("Commited already.")
+    expect(() => messageA.commit()).toThrow("Committed already.")
+    expect(() => messageA.rollback()).toThrow("Committed already.")
 
     // when
     const messageB = await stream.pull()
@@ -186,5 +186,85 @@ describe("Stream", () => {
     // then
     expect(() => messageB.commit()).toThrow("Rollback already.")
     expect(() => messageB.rollback()).toThrow("Rollback already.")
+  })
+
+  test("should pipe messages from one stream to another", async () => {
+    // given
+    const streamA = new Stream<string>()
+    const streamB = new Stream<string>()
+
+    // when
+    streamA.pipe(streamB)
+
+    const messages = ["A", "B", "C", "D"]
+    messages.forEach(message => streamA.push(message))
+
+    // then
+    const outputStream = messages.map(() => streamB.pull())
+    expect(
+      (await Promise.all(outputStream)).map(message => message.value),
+    ).toEqual(messages)
+  })
+
+  test("should unpipe a stream", async () => {
+    // given
+    const streamA = new Stream<string>()
+    const streamB = new Stream<string>()
+
+    // when
+    streamA.pipe(streamB)
+    const messages = ["A", "B"]
+    messages.forEach(message => streamA.push(message))
+
+    // then
+    const outputStream = messages.map(() => streamB.pull())
+    expect(
+      (await Promise.all(outputStream)).map(message => message.value),
+    ).toEqual(messages)
+
+    // when
+    streamA.unpipe(streamB)
+    streamA.push("C")
+    streamB.push("D")
+
+    // then
+    const message = await streamB.pull()
+    expect(message.value).toBe("D")
+  })
+
+  test("should unpipe all streams", async () => {
+    // given
+    const streamA = new Stream<string>()
+    const streamB = new Stream<string>()
+    const streamC = new Stream<string>()
+
+    // when
+    streamA.pipe(streamB)
+    streamA.pipe(streamC)
+
+    const messages = ["A", "B"]
+    messages.forEach(message => streamA.push(message))
+
+    // then
+    const outputStreamB = ["A"].map(() => streamB.pull())
+    const outputStreamC = ["B"].map(() => streamC.pull())
+    expect(
+      (await Promise.all(outputStreamB)).map(message => message.value),
+    ).toEqual(["A"])
+    expect(
+      (await Promise.all(outputStreamC)).map(message => message.value),
+    ).toEqual(["B"])
+
+    // when
+    streamA.unpipeAll()
+    streamA.push("C")
+    streamB.push("D")
+    streamC.push("E")
+
+    // then
+    const messageB = await streamB.pull()
+    const messageC = await streamC.pull()
+    expect(messageB.value).toBe("D")
+    expect(messageC.value).toBe("E")
   })
 })

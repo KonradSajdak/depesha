@@ -143,7 +143,7 @@ export class LinkedList<T> {
 
     let commitAlready = false
     const commit = (node: Node<T>) => {
-      if (commitAlready) throw new Error("Commited already.")
+      if (commitAlready) throw new Error("Committed already.")
       if (rollbackAlready) throw new Error("Rollback already.")
 
       this.pointer = this.pointer.forceToEarliest(node.prev)
@@ -154,7 +154,7 @@ export class LinkedList<T> {
     let rollbackAlready = false
     const rollback = (node: Node<T>) => {
       if (rollbackAlready) throw new Error("Rollback already.")
-      if (commitAlready) throw new Error("Commited already.")
+      if (commitAlready) throw new Error("Committed already.")
 
       this.pointer = this.pointer.forceToEarliest(node.prev)
       node.unlock()

@@ -29,6 +29,8 @@ export type StreamProducer<T> = SyncStreamProducer<T> | AsyncStreamProducer<T>
 export interface StreamConsumer<T> {
   pull(): Promise<Pending<T>>
   pipe(producer: StreamProducer<T>): StreamProducer<T>
+  unpipe(producer: StreamProducer<T>): void
+  unpipeAll(): void
 }
 
 export interface StreamOptions {
@@ -124,10 +126,14 @@ export class Stream<T>
       if (this.closed || unsubscribed) return
 
       const message = await this.pull()
-      await stream
-        .push(message.value)
-        .then(() => message.commit())
-        .catch(() => message.rollback())
+
+      const promise = stream.push(message.value)
+
+      if (!this.autoCommit) {
+        promise.then(() => message.commit()).catch(() => message.rollback())
+      }
+
+      await promise
 
       waitForMessage()
     }
