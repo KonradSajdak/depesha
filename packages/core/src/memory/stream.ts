@@ -26,8 +26,11 @@ export interface SyncStreamProducer<T> {
 
 export type StreamProducer<T> = SyncStreamProducer<T> | AsyncStreamProducer<T>
 
-export interface StreamConsumer<T> {
+export type StreamConsumer<T> = {
   pull(): Promise<Pending<T>>
+} & StreamPipe<T>
+
+export interface StreamPipe<T> {
   pipe(producer: StreamProducer<T>): StreamProducer<T>
   unpipe(producer: StreamProducer<T>): void
   unpipeAll(): void
@@ -133,7 +136,11 @@ export class Stream<T>
         promise.then(() => message.commit()).catch(() => message.rollback())
       }
 
-      await promise
+      try {
+        await promise
+      } catch (exception) {
+        // @fix code smell
+      }
 
       waitForMessage()
     }

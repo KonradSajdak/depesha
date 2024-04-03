@@ -1,14 +1,14 @@
 import { describe, expect, test } from "vitest"
+import { BroadcastStream } from "./broadcast-stream"
 import {
   ChannelClosedAlreadyException,
   ChannelWasClosedException,
 } from "./exception"
-import { Broadcaster } from "./broadcaster"
 
-describe("Broadcaster", () => {
+describe("BroadcastSteam", () => {
   test("should consume a stream concurrently", async () => {
     // given
-    const channel = new Broadcaster<string>()
+    const channel = new BroadcastStream<string>()
     const inputStream = ["A", "B", "C", "D"]
 
     const consumerA = channel.consume()
@@ -31,7 +31,7 @@ describe("Broadcaster", () => {
 
   test("should buffer pushing messages when any consumer registered", async () => {
     // given
-    const channel = new Broadcaster<string>()
+    const channel = new BroadcastStream<string>()
     const inputStream = ["A", "B", "C", "D"]
 
     // when
@@ -47,7 +47,7 @@ describe("Broadcaster", () => {
 
   test("should close the channel", async () => {
     // given
-    const channel = new Broadcaster<string>()
+    const channel = new BroadcastStream<string>()
     const inputStream = ["A", "B", "C", "D"]
 
     const consumer = channel.consume()

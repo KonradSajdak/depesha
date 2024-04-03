@@ -1,37 +1,28 @@
-// import { ConsumerGroup } from "./consumer-group"
-import { Stream as ConsumerGroup } from "./stream"
 import {
   AsyncStreamProducer,
   Stream,
   StreamConsumer,
+  StreamOptions,
+  StreamPipe,
+  StreamProducer,
   SyncStreamProducer,
 } from "./stream"
 
-export interface ChannelConsumerOptions {
-  groupId?: string
-}
-
-export interface ChannelProducingOptions {
-  partition?: number
-}
-
-export interface ChannelOptions {
-  autoCommit?: boolean
-}
-
-export class Broadcaster<T>
-  implements SyncStreamProducer<T>, AsyncStreamProducer<T>
+export class BroadcastStream<T>
+  implements SyncStreamProducer<T>, AsyncStreamProducer<T>, StreamPipe<T>
 {
   private readonly autoCommit?: boolean
 
   private readonly buffer: T[] = []
   private readonly consumers: Stream<T>[] = []
 
-  public constructor(options?: ChannelOptions) {
+  private readonly pipes: Map<StreamProducer<T>, Stream<T>> = new Map()
+
+  public constructor(options?: StreamOptions) {
     this.autoCommit = options?.autoCommit
   }
 
-  public async push(value: T, options?: ChannelProducingOptions): Promise<T> {
+  public async push(value: T): Promise<T> {
     if (this.consumers.length === 0) {
       this.buffer.push(value)
       return Promise.resolve(value)
@@ -49,6 +40,29 @@ export class Broadcaster<T>
     this.buffer.length = 0
 
     return consumer
+  }
+
+  public pipe(producer: StreamProducer<T>): StreamProducer<T> {
+    const consumer = this.consume() as Stream<T>
+    this.pipes.set(producer, consumer)
+
+    return consumer.pipe(producer)
+  }
+
+  public unpipe(producer: StreamProducer<T>): void {
+    const consumer = this.pipes.get(producer)
+    if (consumer) {
+      consumer.unpipe(producer)
+
+      const consumerIndex = this.consumers.indexOf(consumer)
+      if (consumerIndex !== -1) {
+        this.consumers.splice(consumerIndex, 1)
+      }
+    }
+  }
+
+  public unpipeAll() {
+    this.pipes.forEach((_, producer) => this.unpipe(producer))
   }
 
   public async close() {

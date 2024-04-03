@@ -1,12 +1,11 @@
 import { describe, expect, test } from "vitest"
 import { Channel } from "./channel"
-// import { ConsumerGroup as Channel } from "./consumer-group"
 import {
   ChannelClosedAlreadyException,
   ChannelWasClosedException,
 } from "./exception"
 
-describe("Channel", () => {
+describe("ConsumerGroup", () => {
   test("should consume a stream concurrently", async () => {
     // given
     const channel = new Channel<string>()
@@ -41,7 +40,9 @@ describe("Channel", () => {
     const consumerB = channel.consume({ groupId })
 
     // when
-    inputStream.forEach(message => channel.push(message))
+    inputStream.forEach((message, index) =>
+      channel.push(message, { partition: (index % 2) + 1 }),
+    )
 
     // then
     const outputStream = [
@@ -84,9 +85,9 @@ describe("Channel", () => {
 
     // then
     expect(channel.inspect()).toEqual({
-      buffer: 0,
+      partitions: 1,
       consumers: 2,
-      consumerGroups: 1,
+      consumerGroups: 2,
     })
 
     // when
@@ -97,7 +98,7 @@ describe("Channel", () => {
     expect(groupConsumer.pull()).rejects.toThrow(ChannelClosedAlreadyException)
     expect(Promise.all(pushes)).rejects.toThrow(ChannelWasClosedException)
     expect(channel.inspect()).toEqual({
-      buffer: 0,
+      partitions: 0,
       consumers: 0,
       consumerGroups: 0,
     })
