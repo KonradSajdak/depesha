@@ -2,6 +2,7 @@ import { Message, MessageConstruction } from "../message"
 import {
   Consumer,
   ConsumerOptions,
+  ConsumingOptions,
   Producer,
   ProducerOptions,
   Transmission,
@@ -36,47 +37,60 @@ export class InMemoryTransport implements Transport {
           options?.defaultTransmission ??
           Transmission.SYNC
 
+        const partition = message.getHeader("partition")
+
         const channel = this.channel(message.getHeader("channel"))
 
         if (transmission === Transmission.ASYNC) {
-          channel.push(message)
+          channel.push(message, { partition })
           return
         }
 
-        return channel.push(message) as T
+        return channel.push(message, { partition }) as T
       },
     }
   }
 
   public consumer(options?: ConsumerOptions): Consumer {
+    const defaultGroup = "default-group"
+    const defaultChannel = "default-channel"
+
+    const defaultConsumer = `${defaultChannel}:${defaultGroup}`
+
     const consumers: Map<PropertyKey, StreamConsumer<Message>> = new Map([
-      [DEFAULT_CHANNEL, this.channel().consume()],
+      [defaultConsumer, this.channel().consume()],
     ])
 
-    const consumeFrom = (channel?: string) => {
-      if (!channel) return consumers.get(DEFAULT_CHANNEL)!
+    const consumeFrom = (options?: ConsumingOptions) => {
+      const channel = options?.channel ?? defaultChannel
+      const groupId = options?.groupId ?? defaultGroup
 
-      if (!consumers.has(channel)) {
-        consumers.set(channel, this.channel(channel).consume())
+      const consumingKey = `${channel}:${groupId}`
+
+      if (!options?.channel && !options?.groupId)
+        return consumers.get(defaultConsumer)!
+
+      if (!consumers.has(consumingKey)) {
+        consumers.set(consumingKey, this.channel(channel).consume({ groupId }))
       }
 
-      return consumers.get(channel)!
+      return consumers.get(consumingKey)!
     }
 
     return {
-      receive: async <T>(channel?: string) => {
-        const message = await consumeFrom(channel).pull()
+      receive: async <T>(options?: ConsumingOptions) => {
+        const message = await consumeFrom(options).pull()
         return message.value.toConstruction() as MessageConstruction<T>
       },
 
       subscribe: <T>(
         callback: (message: MessageConstruction<T>) => void,
-        channel?: string,
+        options?: ConsumingOptions,
       ) => {
         let unsubscribed = false
 
         const waitForNextMessage = async () => {
-          const message = await consumeFrom(channel).pull()
+          const message = await consumeFrom(options).pull()
           if (unsubscribed) return
 
           callback(message.value.toConstruction() as MessageConstruction<T>)

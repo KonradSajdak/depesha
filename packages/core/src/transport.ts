@@ -9,7 +9,10 @@ export interface ProducerOptions {
   defaultTransmission?: Transmission
 }
 
-export interface ConsumerOptions {
+export interface ConsumerOptions {}
+
+export interface ConsumingOptions {
+  channel?: string
   groupId?: string
 }
 
@@ -18,13 +21,15 @@ export interface Producer {
 }
 
 export interface Receiver {
-  receive<T>(channel?: string): Promise<MessageConstruction<T>>
+  receive<T>(
+    options?: Partial<ConsumingOptions>,
+  ): Promise<MessageConstruction<T>>
 }
 
 export interface Subscriber {
   subscribe<T>(
     callback: (message: MessageConstruction<T>) => void,
-    channel?: string,
+    options?: Partial<ConsumingOptions>,
   ): () => void
 }
 

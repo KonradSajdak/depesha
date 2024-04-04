@@ -27,13 +27,17 @@ const producer = transport.producer({ defaultTransmission: Transmission.ASYNC })
 const consumer = transport.consumer()
 
 const main = async () => {
-  consumer.subscribe(message => {
-    console.log(message)
-  }, "orders")
+  consumer.subscribe(
+    message => {
+      console.log(message)
+    },
+    { channel: "orders" },
+  )
 
   const result = await producer.send({
     body: "hello world!",
     headers: {
+      transmission: Transmission.SYNC,
       channel: "orders",
     },
   })

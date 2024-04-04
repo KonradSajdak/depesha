@@ -1,11 +1,11 @@
-import { BroadcastStream } from "./broadcast-stream";
+import { BroadcastStream } from "./broadcast-stream"
 import {
   AsyncStreamProducer,
   Stream,
   StreamConsumer,
   StreamOptions,
   SyncStreamProducer,
-} from "./stream";
+} from "./stream"
 
 export interface ChannelMessageOptions {
   partition?: number
@@ -15,7 +15,7 @@ export interface ChannelConsumerOptions {
   groupId?: string
 }
 
-export type ChannelOptions = StreamOptions;
+export type ChannelOptions = StreamOptions
 
 export class Channel<T>
   implements SyncStreamProducer<T>, AsyncStreamProducer<T>
