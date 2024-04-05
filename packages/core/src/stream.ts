@@ -14,6 +14,7 @@ export interface Pending<T> {
   value: T
   commit: () => void
   rollback: () => void
+  reject: (reason?: any) => void
 }
 
 export interface AsyncStreamProducer<T> {
@@ -77,6 +78,10 @@ export class Stream<T>
           return defer.resolve(value)
         },
         rollback: node.rollback,
+        reject: (reason?: any) => {
+          node.commit()
+          return defer.reject(reason)
+        }
       }
 
       if (this.autoCommit) {
@@ -113,6 +118,10 @@ export class Stream<T>
         return defer.resolve(value)
       },
       rollback: next.rollback,
+      reject: (reason?: any) => {
+        next.commit()
+        return defer.reject(reason)
+      }
     }
 
     if (this.autoCommit) {
@@ -133,7 +142,9 @@ export class Stream<T>
       const promise = stream.push(message.value)
 
       if (!this.autoCommit) {
-        promise.then(() => message.commit()).catch(() => message.rollback())
+        promise
+          .then(() => message.commit())
+          .catch((reason) => message.reject(reason))
       }
 
       try {
