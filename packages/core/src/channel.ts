@@ -3,7 +3,6 @@ import {
   AsyncStreamProducer,
   Stream,
   StreamConsumer,
-  StreamOptions,
   SyncStreamProducer,
 } from "./stream"
 
@@ -15,28 +14,19 @@ export interface ChannelConsumerOptions {
   groupId?: string
 }
 
-export type ChannelOptions = StreamOptions
-
 export class Channel<T>
   implements SyncStreamProducer<T>, AsyncStreamProducer<T>
 {
-  private readonly autoCommit?: boolean
 
   private readonly partitions: BroadcastStream<T>[] = []
   private readonly groups: Map<PropertyKey, Stream<T>[]> = new Map()
-
-  public constructor(options?: ChannelOptions) {
-    this.autoCommit = options?.autoCommit
-  }
 
   public async push(value: T, options?: ChannelMessageOptions): Promise<T> {
     const partitionNumber = options?.partition ?? 1
     const partitionIndex = partitionNumber - 1
 
     if (this.partitions[partitionIndex] === undefined) {
-      this.partitions[partitionIndex] = new BroadcastStream<T>({
-        autoCommit: this.autoCommit,
-      })
+      this.partitions[partitionIndex] = new BroadcastStream<T>()
 
       this.rebalance()
     }
@@ -49,7 +39,7 @@ export class Channel<T>
     const groupId = options?.groupId ?? Symbol()
     const group = this.groups.get(groupId) ?? []
 
-    const stream = new Stream<T>({ autoCommit: this.autoCommit })
+    const stream = new Stream<T>()
     group.push(stream)
 
     this.groups.set(groupId, group)

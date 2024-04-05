@@ -3,7 +3,7 @@ import {
   ChannelClosedAlreadyException,
   ChannelWasClosedException,
 } from "./exception"
-import { LinkedList } from "./linked-list"
+import { LinkedList, Locked } from "./linked-list"
 
 export interface Pushed<T> {
   value: T
@@ -37,27 +37,34 @@ export interface StreamPipe<T> {
   unpipeAll(): void
 }
 
-export interface StreamOptions {
-  autoCommit?: boolean
-}
-
 export type UnpipeCallback = () => void
-
 export class Stream<T>
   implements SyncStreamProducer<T>, AsyncStreamProducer<T>, StreamConsumer<T>
 {
   private closed: boolean = false
-  private autoCommit: boolean
   private pipes: Map<StreamProducer<T>, UnpipeCallback> = new Map()
 
   public readonly stream: LinkedList<Pushed<T>>
   public readonly pending: Deferred<Pending<T>>[]
 
-  public constructor(options?: StreamOptions) {
+  public constructor() {
     this.stream = new LinkedList()
     this.pending = []
+  }
 
-    this.autoCommit = options?.autoCommit ?? true
+  private createMessage(value: T, node: Locked<Pushed<T>>, defer: Deferred<T>): Pending<T> {
+    return {
+      value,
+      commit: () => {
+        node.commit()
+        return defer.resolve(value)
+      },
+      rollback: node.rollback,
+      reject: (reason?: any) => {
+        node.commit()
+        return defer.reject(reason).catch(() => {})
+      }
+    }
   }
 
   public async push(value: T): Promise<T> {
@@ -70,23 +77,7 @@ export class Stream<T>
     const pending = this.pending.shift()
     if (pending) {
       const node = this.stream.appendWithLock({ value, defer })
-
-      const message = {
-        value,
-        commit: () => {
-          node.commit()
-          return defer.resolve(value)
-        },
-        rollback: node.rollback,
-        reject: (reason?: any) => {
-          node.commit()
-          return defer.reject(reason)
-        }
-      }
-
-      if (this.autoCommit) {
-        await message.commit()
-      }
+      const message = this.createMessage(value, node, defer);
 
       return pending.resolve(message).then(() => defer.promise)
     }
@@ -110,50 +101,20 @@ export class Stream<T>
     }
 
     const { value, defer } = next.value
-
-    const message = {
-      value: value,
-      commit: () => {
-        next.commit()
-        return defer.resolve(value)
-      },
-      rollback: next.rollback,
-      reject: (reason?: any) => {
-        next.commit()
-        return defer.reject(reason)
-      }
-    }
-
-    if (this.autoCommit) {
-      await message.commit()
-    }
-
-    return message
+    return this.createMessage(value, next, defer);
   }
 
   public pipe(stream: StreamProducer<T>) {
     let unsubscribed = false
 
     const waitForMessage = async () => {
-      if (this.closed || unsubscribed) return
+      while (!this.closed && !unsubscribed) {
+        const message = await this.pull()
 
-      const message = await this.pull()
-
-      const promise = stream.push(message.value)
-
-      if (!this.autoCommit) {
-        promise
+        await stream.push(message.value)
           .then(() => message.commit())
-          .catch((reason) => message.reject(reason))
+          .catch(reason => message.reject(reason))
       }
-
-      try {
-        await promise
-      } catch (exception) {
-        // @fix code smell
-      }
-
-      waitForMessage()
     }
 
     this.pipes.set(stream, () => {

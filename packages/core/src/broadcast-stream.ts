@@ -2,7 +2,6 @@ import {
   AsyncStreamProducer,
   Stream,
   StreamConsumer,
-  StreamOptions,
   StreamPipe,
   StreamProducer,
   SyncStreamProducer,
@@ -11,16 +10,10 @@ import {
 export class BroadcastStream<T>
   implements SyncStreamProducer<T>, AsyncStreamProducer<T>, StreamPipe<T>
 {
-  private readonly autoCommit?: boolean
-
   private readonly buffer: T[] = []
   private readonly consumers: Stream<T>[] = []
 
   private readonly pipes: Map<StreamProducer<T>, Stream<T>> = new Map()
-
-  public constructor(options?: StreamOptions) {
-    this.autoCommit = options?.autoCommit
-  }
 
   public async push(value: T): Promise<T> {
     if (this.consumers.length === 0) {
@@ -33,7 +26,7 @@ export class BroadcastStream<T>
   }
 
   public consume(): StreamConsumer<T> {
-    const consumer = new Stream<T>({ autoCommit: this.autoCommit })
+    const consumer = new Stream<T>()
     this.consumers.push(consumer)
 
     this.buffer.forEach(message => this.push(message))

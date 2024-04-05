@@ -4,6 +4,7 @@ import {
   ChannelClosedAlreadyException,
   ChannelWasClosedException,
 } from "./exception"
+import { autoCommit } from "./auto-commit"
 
 describe("BroadcastSteam", () => {
   test("should consume a stream concurrently", async () => {
@@ -18,12 +19,12 @@ describe("BroadcastSteam", () => {
     inputStream.forEach(message => channel.push(message))
 
     // then
-    const outputStreamA = inputStream.map(() => consumerA.pull())
+    const outputStreamA = inputStream.map(() => autoCommit(consumerA.pull()))
     expect(
       (await Promise.all(outputStreamA)).map(message => message.value),
     ).toEqual(inputStream)
 
-    const outputStreamB = inputStream.map(() => consumerB.pull())
+    const outputStreamB = inputStream.map(() => autoCommit(consumerB.pull()))
     expect(
       (await Promise.all(outputStreamB)).map(message => message.value),
     ).toEqual(inputStream)
@@ -43,6 +44,82 @@ describe("BroadcastSteam", () => {
     expect(
       (await Promise.all(outputStream)).map(message => message.value),
     ).toEqual(inputStream)
+  })
+
+  test("should pipe messages from one stream to another", async () => {
+    // given
+    const streamA = new BroadcastStream<string>()
+    const streamB = new BroadcastStream<string>()
+
+    const consumer = streamB.consume()
+
+    // when
+    streamA.pipe(streamB)
+
+    const messages = ["A", "B", "C", "D"]
+    messages.forEach(message => streamA.push(message))
+
+    // then
+    const outputStream = messages.map(() => autoCommit(consumer.pull()))
+    expect(
+      (await Promise.all(outputStream)).map(message => message.value),
+    ).toEqual(messages)
+  })
+
+  test("should pipe messages from one stream to another concurrently", async () => {
+    // given
+    const streamA = new BroadcastStream<string>()
+    const streamB = new BroadcastStream<string>()
+    const streamC = new BroadcastStream<string>()
+
+    const consumerA = streamA.consume()
+    const consumerB = streamB.consume()
+
+    // when
+    streamC.pipe(streamA)
+    streamC.pipe(streamB)
+
+    const messages = ["A", "B", "C", "D"]
+    messages.forEach(message => streamC.push(message))
+
+    // then
+    const outputStreamA = messages.map(() => autoCommit(consumerA.pull()))
+    expect(
+      (await Promise.all(outputStreamA)).map(message => message.value),
+    ).toEqual(messages)
+
+    const outputStreamB = messages.map(() => autoCommit(consumerB.pull()))
+    expect(
+      (await Promise.all(outputStreamB)).map(message => message.value),
+    ).toEqual(messages)
+  })
+
+  test("should unpipe a stream", async () => {
+    // given
+    const streamA = new BroadcastStream<string>()
+    const streamB = new BroadcastStream<string>()
+
+    const consumerB = streamB.consume()
+
+    // when
+    streamA.pipe(streamB)
+    const messages = ["A", "B"]
+    messages.forEach(message => streamA.push(message))
+
+    // then
+    const outputStream = messages.map(() => autoCommit(consumerB.pull()))
+    expect(
+      (await Promise.all(outputStream)).map(message => message.value),
+    ).toEqual(messages)
+
+    // when
+    streamA.unpipe(streamB)
+    streamA.push("C")
+    streamB.push("D")
+
+    // then
+    const message = await consumerB.pull()
+    expect(message.value).toBe("D")
   })
 
   test("should close the channel", async () => {

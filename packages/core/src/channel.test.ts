@@ -4,8 +4,10 @@ import {
   ChannelClosedAlreadyException,
   ChannelWasClosedException,
 } from "./exception"
+import { Pending } from "./stream"
+import { autoCommit } from "./auto-commit"
 
-describe("ConsumerGroup", () => {
+describe("Channel", () => {
   test("should consume a stream concurrently", async () => {
     // given
     const channel = new Channel<string>()
@@ -18,12 +20,12 @@ describe("ConsumerGroup", () => {
     inputStream.forEach(message => channel.push(message))
 
     // then
-    const outputStreamA = inputStream.map(() => consumerA.pull())
+    const outputStreamA = inputStream.map(() => autoCommit(consumerA.pull()))
     expect(
       (await Promise.all(outputStreamA)).map(message => message.value),
     ).toEqual(inputStream)
 
-    const outputStreamB = inputStream.map(() => consumerB.pull())
+    const outputStreamB = inputStream.map(() => autoCommit(consumerB.pull()))
     expect(
       (await Promise.all(outputStreamB)).map(message => message.value),
     ).toEqual(inputStream)
@@ -46,10 +48,10 @@ describe("ConsumerGroup", () => {
 
     // then
     const outputStream = [
-      consumerA.pull(),
-      consumerB.pull(),
-      consumerA.pull(),
-      consumerB.pull(),
+      autoCommit(consumerA.pull()),
+      autoCommit(consumerB.pull()),
+      autoCommit(consumerA.pull()),
+      autoCommit(consumerB.pull()),
     ]
     expect(
       (await Promise.all(outputStream)).map(message => message.value),
@@ -66,7 +68,7 @@ describe("ConsumerGroup", () => {
 
     // then
     const consumer = channel.consume()
-    const outputStream = inputStream.map(() => consumer.pull())
+    const outputStream = inputStream.map(() => autoCommit(consumer.pull()))
     expect(
       (await Promise.all(outputStream)).map(message => message.value),
     ).toEqual(inputStream)

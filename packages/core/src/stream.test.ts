@@ -4,6 +4,7 @@ import {
   ChannelClosedAlreadyException,
   ChannelWasClosedException,
 } from "./exception"
+import { autoCommit } from "./auto-commit"
 
 describe("Stream", () => {
   test("should push a message async", async () => {
@@ -26,6 +27,8 @@ describe("Stream", () => {
     const pushing = stream.push("test")
     const result = await stream.pull()
 
+    result.commit()
+
     // then
     expect(result.value).toBe("test")
     expect(pushing).resolves.toBe("test")
@@ -39,7 +42,7 @@ describe("Stream", () => {
     const result = stream.pull()
 
     // when
-    await stream.push("test")
+    stream.push("test")
 
     // then
     await expect(result).resolves.toHaveProperty("value", "test")
@@ -132,9 +135,22 @@ describe("Stream", () => {
     await expect(push).rejects.toThrow(ChannelWasClosedException)
   })
 
+  test("should manually reject message", async () => {
+    // given
+    const stream = new Stream<string>()
+    const push = stream.push("test")
+
+    // when
+    const message = await stream.pull()
+    message.reject(new Error("test"))
+
+    // then
+    await expect(push).rejects.toThrow("test")
+  })
+
   test("should rollback a message and pull it again", async () => {
     // given
-    const stream = new Stream<string>({ autoCommit: false })
+    const stream = new Stream<string>()
     ;["A", "B", "C", "D"].forEach(message => stream.push(message))
 
     // when
@@ -168,7 +184,7 @@ describe("Stream", () => {
 
   test("should only commit or rollback once", async () => {
     // given
-    const stream = new Stream<string>({ autoCommit: false })
+    const stream = new Stream<string>()
     ;["A", "B", "C", "D"].forEach(message => stream.push(message))
 
     // when
@@ -200,7 +216,32 @@ describe("Stream", () => {
     messages.forEach(message => streamA.push(message))
 
     // then
-    const outputStream = messages.map(() => streamB.pull())
+    const outputStream = messages.map(() => autoCommit(streamB.pull()))
+    expect(
+      (await Promise.all(outputStream)).map(message => message.value),
+    ).toEqual(messages)
+  })
+
+  test("should pipe messages from one stream to another sequentially", async () => {
+    // given
+    const streamA = new Stream<string>()
+    const streamB = new Stream<string>()
+    const streamC = new Stream<string>()
+
+    // when
+    streamA.pipe(streamB)
+    streamA.pipe(streamC)
+
+    const messages = ["A", "B", "C", "D"]
+    messages.forEach(message => streamA.push(message))
+
+    // then
+    const outputStream = [
+      autoCommit(streamB.pull()),
+      autoCommit(streamC.pull()),
+      autoCommit(streamB.pull()),
+      autoCommit(streamC.pull()),
+    ]
     expect(
       (await Promise.all(outputStream)).map(message => message.value),
     ).toEqual(messages)
@@ -217,7 +258,7 @@ describe("Stream", () => {
     messages.forEach(message => streamA.push(message))
 
     // then
-    const outputStream = messages.map(() => streamB.pull())
+    const outputStream = messages.map(() => autoCommit(streamB.pull()))
     expect(
       (await Promise.all(outputStream)).map(message => message.value),
     ).toEqual(messages)
