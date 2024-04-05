@@ -37,12 +37,15 @@ const main = async () => {
   const result = await producer.send({
     body: "hello world!",
     headers: {
-      transmission: Transmission.SYNC,
       channel: "orders",
     },
   })
 
   console.log(result)
+
+  const message = await consumer.receive({ channel: "orders" });
+
+  console.log(message)
 }
 
 main()

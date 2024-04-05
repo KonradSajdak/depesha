@@ -8,8 +8,8 @@ import {
   Transmission,
   Transport,
 } from "../transport"
-import { Channel } from "./channel"
-import { StreamConsumer } from "./stream"
+import { Channel } from "../channel"
+import { StreamConsumer } from "../stream"
 
 const DEFAULT_CHANNEL = Symbol("IN_MEMORY_TRANSPORT_DEFAULT_CHANNEL")
 
