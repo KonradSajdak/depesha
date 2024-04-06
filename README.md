@@ -67,6 +67,10 @@ This is a list of features that I would like to implement in the future. The lis
   - [X] Publish/Subscribe
   - [ ] Request/Response
 - [ ] Hybrid-adaptive patterns blocks
+  - [ ] Pipes/Middlewares
+  - [ ] Channels
+  - [ ] Streams
+  - [ ] Broadcasters 
 - [X] Transports
   - [X] In-memory
     - [X] Ack/Nack
