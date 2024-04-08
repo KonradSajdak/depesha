@@ -10,6 +10,8 @@ import {
 export class BroadcastStream<T>
   implements SyncStreamProducer<T>, AsyncStreamProducer<T>, StreamPipe<T>
 {
+  private readonly id: string = Math.random().toString(36).slice(2)
+
   private readonly buffer: T[] = []
   private readonly consumers: Stream<T>[] = []
 
@@ -21,7 +23,10 @@ export class BroadcastStream<T>
       return Promise.resolve(value)
     }
 
-    await Promise.all(this.consumers.map(consumer => consumer.push(value)))
+    await Promise.allSettled(
+      this.consumers.map(consumer => consumer.push(value)),
+    )
+
     return Promise.resolve(value)
   }
 

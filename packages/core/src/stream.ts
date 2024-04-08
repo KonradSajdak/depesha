@@ -41,6 +41,8 @@ export type UnpipeCallback = () => void
 export class Stream<T>
   implements SyncStreamProducer<T>, AsyncStreamProducer<T>, StreamConsumer<T>
 {
+  private readonly id: string = Math.random().toString(36).slice(2)
+
   private closed: boolean = false
   private pipes: Map<StreamProducer<T>, UnpipeCallback> = new Map()
 
@@ -52,7 +54,11 @@ export class Stream<T>
     this.pending = []
   }
 
-  private createMessage(value: T, node: Locked<Pushed<T>>, defer: Deferred<T>): Pending<T> {
+  private createMessage(
+    value: T,
+    node: Locked<Pushed<T>>,
+    defer: Deferred<T>,
+  ): Pending<T> {
     return {
       value,
       commit: () => {
@@ -63,7 +69,7 @@ export class Stream<T>
       reject: (reason?: any) => {
         node.commit()
         return defer.reject(reason).catch(() => {})
-      }
+      },
     }
   }
 
@@ -77,7 +83,7 @@ export class Stream<T>
     const pending = this.pending.shift()
     if (pending) {
       const node = this.stream.appendWithLock({ value, defer })
-      const message = this.createMessage(value, node, defer);
+      const message = this.createMessage(value, node, defer)
 
       return pending.resolve(message).then(() => defer.promise)
     }
@@ -101,7 +107,7 @@ export class Stream<T>
     }
 
     const { value, defer } = next.value
-    return this.createMessage(value, next, defer);
+    return this.createMessage(value, next, defer)
   }
 
   public pipe(stream: StreamProducer<T>) {
@@ -111,7 +117,8 @@ export class Stream<T>
       while (!this.closed && !unsubscribed) {
         const message = await this.pull()
 
-        await stream.push(message.value)
+        await stream
+          .push(message.value)
           .then(() => message.commit())
           .catch(reason => message.reject(reason))
       }

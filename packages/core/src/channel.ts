@@ -17,7 +17,6 @@ export interface ChannelConsumerOptions {
 export class Channel<T>
   implements SyncStreamProducer<T>, AsyncStreamProducer<T>
 {
-
   private readonly partitions: BroadcastStream<T>[] = []
   private readonly groups: Map<PropertyKey, Stream<T>[]> = new Map()
 

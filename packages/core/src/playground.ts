@@ -43,7 +43,7 @@ const main = async () => {
 
   console.log(result)
 
-  const message = await consumer.receive({ channel: "orders" });
+  const message = await consumer.receive({ channel: "orders" })
 
   console.log(message)
 }
