@@ -5,6 +5,7 @@ import {
   ChannelWasClosedException,
 } from "./exception"
 import { autoCommit } from "./auto-commit"
+import { LogStream } from "./helpers/log-stream"
 
 describe("Stream", () => {
   test("should push a message async", async () => {

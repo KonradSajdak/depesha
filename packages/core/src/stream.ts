@@ -169,4 +169,8 @@ export class Stream<T>
       pulls: this.pending.length,
     }
   }
+
+  public isClosed() {
+    return this.closed
+  }
 }

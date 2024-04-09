@@ -5,6 +5,7 @@ import {
   ChannelWasClosedException,
 } from "./exception"
 import { autoCommit } from "./auto-commit"
+import { LogBroadcastStream } from "./helpers/log-broadcast-stream"
 
 describe("BroadcastSteam", () => {
   test("should consume a stream concurrently", async () => {
@@ -68,9 +69,9 @@ describe("BroadcastSteam", () => {
 
   test("should pipe messages from one stream to another concurrently", async () => {
     // given
-    const streamA = new BroadcastStream<string>()
-    const streamB = new BroadcastStream<string>()
-    const streamC = new BroadcastStream<string>()
+    const streamA = new LogBroadcastStream<string>({ id: "A" })
+    const streamB = new LogBroadcastStream<string>({ id: "B" })
+    const streamC = new LogBroadcastStream<string>({ id: "C" })
 
     const consumerA = streamA.consume()
     const consumerB = streamB.consume()
