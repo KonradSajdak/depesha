@@ -126,12 +126,12 @@ export class LinkedList<T> {
   public shiftWithLock(): Locked<T> | null {
     const node = this.pointer.current() ?? this.head
 
-    const getNext = (node: Node<T> | null): Node<T> | null => {
+    const getFirstAvailable = (node: Node<T> | null): Node<T> | null => {
       if (!node) return null
-      return node.isLocked() && node.next ? getNext(node.next) : node
+      return node.isLocked() ? getFirstAvailable(node.next) : node
     }
 
-    const next = getNext(node)
+    const next = getFirstAvailable(node)
     if (!next) return null
 
     return this.withLock(next)

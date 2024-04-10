@@ -30,8 +30,7 @@ export class Channel<T>
       this.rebalance()
     }
 
-    await this.partitions[partitionIndex].push(value)
-    return Promise.resolve(value)
+    return await this.partitions[partitionIndex].push(value)
   }
 
   public consume(options?: ChannelConsumerOptions): StreamConsumer<T> {

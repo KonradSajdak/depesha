@@ -1,4 +1,8 @@
 import {
+  ChannelClosedAlreadyException,
+  ChannelWasClosedException,
+} from "./exception"
+import {
   AsyncStreamProducer,
   Stream,
   StreamConsumer,
@@ -21,11 +25,17 @@ export class BroadcastStream<T>
       return Promise.resolve(value)
     }
 
-    await Promise.allSettled(
+    return await Promise.all(
       this.consumers.map(consumer => consumer.push(value)),
     )
+      .then(() => value)
+      .catch(error => {
+        if (error instanceof ChannelClosedAlreadyException) {
+          throw new ChannelWasClosedException(error.message)
+        }
 
-    return Promise.resolve(value)
+        throw error
+      })
   }
 
   public consume(): StreamConsumer<T> {
@@ -62,8 +72,9 @@ export class BroadcastStream<T>
   }
 
   public async close() {
-    this.buffer.length = 0
+    this.unpipeAll()
     await Promise.allSettled(this.consumers.map(consumer => consumer.close()))
+    this.buffer.length = 0
     this.consumers.length = 0
   }
 

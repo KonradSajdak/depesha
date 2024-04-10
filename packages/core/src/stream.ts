@@ -41,8 +41,6 @@ export type UnpipeCallback = () => void
 export class Stream<T>
   implements SyncStreamProducer<T>, AsyncStreamProducer<T>, StreamConsumer<T>
 {
-  private readonly id: string = Math.random().toString(36).slice(2)
-
   private closed: boolean = false
   private pipes: Map<StreamProducer<T>, UnpipeCallback> = new Map()
 
@@ -146,6 +144,8 @@ export class Stream<T>
   }
 
   public async close() {
+    this.unpipeAll()
+
     this.closed = true
 
     const reject = (defer: Deferred<any>) => {

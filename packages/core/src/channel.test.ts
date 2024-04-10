@@ -4,7 +4,6 @@ import {
   ChannelClosedAlreadyException,
   ChannelWasClosedException,
 } from "./exception"
-import { Pending } from "./stream"
 import { autoCommit } from "./auto-commit"
 
 describe("Channel", () => {

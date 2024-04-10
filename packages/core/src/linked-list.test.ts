@@ -270,4 +270,17 @@ describe("LinkedList (controlled)", () => {
     expect(() => nodeB.commit()).toThrow("Rollback already.")
     expect(() => nodeB.rollback()).toThrow("Rollback already.")
   })
+
+  test("should not shift when doesn't have available nodes", () => {
+    // given
+    const list = LinkedList.fromArray([1])
+
+    // when
+    const nodeA = list.shiftWithLock()
+    const nodeB = list.shiftWithLock()
+
+    // then
+    expect(() => nodeA).not.toBeNull()
+    expect(nodeB).toBeNull()
+  })
 })

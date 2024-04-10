@@ -5,7 +5,6 @@ import {
   ChannelWasClosedException,
 } from "./exception"
 import { autoCommit } from "./auto-commit"
-import { LogStream } from "./helpers/log-stream"
 
 describe("Stream", () => {
   test("should push a message async", async () => {
@@ -203,6 +202,24 @@ describe("Stream", () => {
     // then
     expect(() => messageB.commit()).toThrow("Rollback already.")
     expect(() => messageB.rollback()).toThrow("Rollback already.")
+  })
+
+  test("should pull only not locked message", async () => {
+    // given
+    const stream = new Stream<string>()
+    stream.push("A")
+
+    const firstPulling = stream.pull()
+    const secondPulling = stream.pull()
+
+    // then
+    await expect(firstPulling).resolves.toHaveProperty("value", "A")
+
+    // when
+    stream.push("B")
+
+    // then
+    await expect(secondPulling).resolves.toHaveProperty("value", "B")
   })
 
   test("should pipe messages from one stream to another", async () => {
