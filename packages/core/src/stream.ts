@@ -4,6 +4,7 @@ import {
   ChannelWasClosedException,
 } from "./exception"
 import { LinkedList, Locked } from "./linked-list"
+import { pipe } from "./pipe"
 
 export interface Pushed<T> {
   value: T
@@ -26,7 +27,7 @@ export interface SyncStreamProducer<T> {
 }
 
 export type StreamProducer<T> = SyncStreamProducer<T> | AsyncStreamProducer<T>
-export type StreamConsumer<T> = { pull(): Promise<Pending<T>> }
+export type StreamConsumer<T> = { pull(): Promise<Pending<T>>, isClosed(): boolean }
 export interface StreamPipe<T> {
   pipe<TSource extends StreamProducer<T>>(producer: TSource): TSource
   unpipe(producer: StreamProducer<T>): void
@@ -109,34 +110,40 @@ export class Stream<T>
   }
 
   public pipe<TSource extends StreamProducer<T>>(stream: TSource): TSource {
-    let unsubscribed = false
+    const unsubscribe = pipe(this, stream);
+    this.pipes.set(stream, unsubscribe);
 
-    const waitForMessage = async () => {
-      while (!this.closed && !unsubscribed) {
-        const message = await this.pull()
+    return stream;
 
-        await stream
-          .push(message.value)
-          .then(() => message.commit())
-          .catch(reason => message.reject(reason))
-      }
-    }
+    // let unsubscribed = false
 
-    this.pipes.set(stream, () => {
-      unsubscribed = true
-      this.pipes.delete(stream)
-    })
+    // const waitForMessage = async () => {
+    //   while (!this.closed && !unsubscribed) {
+    //     const message = await this.pull()
 
-    waitForMessage()
+    //     await stream
+    //       .push(message.value)
+    //       .then(() => message.commit())
+    //       .catch(reason => message.reject(reason))
+    //   }
+    // }
 
-    return stream
+    // this.pipes.set(stream, () => {
+    //   unsubscribed = true
+    //   this.pipes.delete(stream)
+    // })
+
+    // waitForMessage()
+
+    // return stream
   }
 
   public unpipe(stream: StreamProducer<T>) {
     const unsubscribe = this.pipes.get(stream)
-    if (unsubscribe) {
-      unsubscribe()
-    }
+    if (!unsubscribe) return;
+    
+    unsubscribe()
+    this.pipes.delete(stream)
   }
 
   public unpipeAll() {

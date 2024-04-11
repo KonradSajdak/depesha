@@ -9,16 +9,20 @@ export interface AvailableMessageHeaders {
   transmission: Transmission
 }
 
+export type MessageRaw<
+  TBody = unknown,
+  THeaders extends
+    Partial<AvailableMessageHeaders> = Partial<AvailableMessageHeaders>,
+> = {
+  body: TBody
+  headers?: THeaders
+}
+
 export type MessageConstruction<
   TBody = unknown,
   THeaders extends
     Partial<AvailableMessageHeaders> = Partial<AvailableMessageHeaders>,
-> =
-  | {
-      body: TBody
-      headers?: THeaders
-    }
-  | TBody
+> = MessageRaw<TBody, THeaders> | TBody
 
 export class Message<
   TBody = unknown,
@@ -34,7 +38,7 @@ export class Message<
     this.id = headers.messageId ?? randomUUID()
   }
 
-  public toConstruction(): MessageConstruction<TBody, THeaders> {
+  public toRaw(): MessageRaw<TBody, THeaders> {
     return {
       body: this.body,
       headers: this.headers,

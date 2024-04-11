@@ -38,4 +38,8 @@ export class Transformer<T, O = T>
   public unpipeAll(): void {
     this.stream.unpipeAll()
   }
+
+  public isClosed(): boolean {
+    return this.stream.isClosed()
+  }
 }

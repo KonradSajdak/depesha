@@ -27,25 +27,31 @@ const producer = transport.producer({ defaultTransmission: Transmission.ASYNC })
 const consumer = transport.consumer()
 
 const main = async () => {
-  consumer.subscribe(
-    message => {
-      console.log(message)
-    },
-    { channel: "orders", groupId: "1" },
-  )
+  // consumer.subscribe(
+  //   message => {
+  //     console.log(message)
+  //   }
+  // )
 
-  const result = await producer.send({
-    body: "hello world!",
-    headers: {
-      channel: "orders",
-    },
-  })
+  await producer.send("hello")
+  await producer.send("world")
+  await producer.send("how")
+  await producer.send("are")
+  await producer.send("you")
 
-  console.log(result)
+  // const result = await Promise.all(messages.map(message => producer.send({ body: message, headers: { channel: "orders" } })))
 
-  const message = await consumer.receive({ channel: "orders", groupId: "2" })
+  // console.log(result)
+
+  const message = await consumer.receive({ groupId: "A" })
 
   console.log(message)
+
+  await message.commit()
+
+  const message2 = await consumer.receive({ groupId: "B" });
+
+  console.log(message2)
 }
 
 main()
