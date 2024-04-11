@@ -9,7 +9,9 @@ import {
   Transport,
 } from "../transport"
 import { Channel } from "../channel"
-import { StreamConsumer } from "../stream"
+import { StreamConsumer, StreamPipe } from "../stream"
+import { Transformer } from "../transformer"
+import { Subscriber } from "../subscriber"
 
 const DEFAULT_CHANNEL = Symbol("IN_MEMORY_TRANSPORT_DEFAULT_CHANNEL")
 
@@ -57,9 +59,10 @@ export class InMemoryTransport implements Transport {
 
     const defaultConsumer = `${defaultChannel}:${defaultGroup}`
 
-    const consumers: Map<PropertyKey, StreamConsumer<Message>> = new Map([
-      [defaultConsumer, this.channel().consume()],
-    ])
+    const consumers: Map<
+      PropertyKey,
+      StreamConsumer<Message> & StreamPipe<Message>
+    > = new Map([[defaultConsumer, this.channel().consume()]])
 
     const consumeFrom = (options?: ConsumingOptions) => {
       const channel = options?.channel ?? defaultChannel
@@ -87,21 +90,13 @@ export class InMemoryTransport implements Transport {
         callback: (message: MessageConstruction<T>) => void,
         options?: ConsumingOptions,
       ) => {
-        let unsubscribed = false
+        const consumer = consumeFrom(options)
 
-        const waitForNextMessage = async () => {
-          const message = await consumeFrom(options).pull()
-          if (unsubscribed) return
+        consumer
+          .pipe(new Transformer((message: Message) => message.toConstruction()))
+          .pipe(new Subscriber(callback))
 
-          callback(message.value.toConstruction() as MessageConstruction<T>)
-          await waitForNextMessage()
-        }
-
-        waitForNextMessage()
-
-        return () => {
-          unsubscribed = true
-        }
+        return () => consumer.unpipeAll()
       },
     }
   }

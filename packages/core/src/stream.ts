@@ -26,20 +26,20 @@ export interface SyncStreamProducer<T> {
 }
 
 export type StreamProducer<T> = SyncStreamProducer<T> | AsyncStreamProducer<T>
-
-export type StreamConsumer<T> = {
-  pull(): Promise<Pending<T>>
-} & StreamPipe<T>
-
+export type StreamConsumer<T> = { pull(): Promise<Pending<T>> }
 export interface StreamPipe<T> {
-  pipe(producer: StreamProducer<T>): StreamProducer<T>
+  pipe<TSource extends StreamProducer<T>>(producer: TSource): TSource
   unpipe(producer: StreamProducer<T>): void
   unpipeAll(): void
 }
 
 export type UnpipeCallback = () => void
 export class Stream<T>
-  implements SyncStreamProducer<T>, AsyncStreamProducer<T>, StreamConsumer<T>
+  implements
+    SyncStreamProducer<T>,
+    AsyncStreamProducer<T>,
+    StreamConsumer<T>,
+    StreamPipe<T>
 {
   private closed: boolean = false
   private pipes: Map<StreamProducer<T>, UnpipeCallback> = new Map()
@@ -108,7 +108,7 @@ export class Stream<T>
     return this.createMessage(value, next, defer)
   }
 
-  public pipe(stream: StreamProducer<T>) {
+  public pipe<TSource extends StreamProducer<T>>(stream: TSource): TSource {
     let unsubscribed = false
 
     const waitForMessage = async () => {

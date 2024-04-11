@@ -1,4 +1,4 @@
-//ts-worksheet
+//ts-worksheet-with-variables
 import { withMemoryTransport } from "./memory"
 import { MessageConstruction } from "./message"
 import { Consumer, Producer, Transmission, Transport } from "./transport"
@@ -31,7 +31,7 @@ const main = async () => {
     message => {
       console.log(message)
     },
-    { channel: "orders" },
+    { channel: "orders", groupId: "1" },
   )
 
   const result = await producer.send({
@@ -43,7 +43,7 @@ const main = async () => {
 
   console.log(result)
 
-  const message = await consumer.receive({ channel: "orders" })
+  const message = await consumer.receive({ channel: "orders", groupId: "2" })
 
   console.log(message)
 }

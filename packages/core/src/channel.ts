@@ -3,6 +3,7 @@ import {
   AsyncStreamProducer,
   Stream,
   StreamConsumer,
+  StreamPipe,
   SyncStreamProducer,
 } from "./stream"
 
@@ -33,7 +34,9 @@ export class Channel<T>
     return await this.partitions[partitionIndex].push(value)
   }
 
-  public consume(options?: ChannelConsumerOptions): StreamConsumer<T> {
+  public consume(
+    options?: ChannelConsumerOptions,
+  ): StreamConsumer<T> & StreamPipe<T> {
     const groupId = options?.groupId ?? Symbol()
     const group = this.groups.get(groupId) ?? []
 

@@ -61,7 +61,7 @@ This is a list of features that I would like to implement in the future. The lis
     - [X] Consumers Groups
   - [ ] Commands, Events, Queries
 - [ ] Composable construction (Builder Pattern?)
-- [ ] Partitioning / Sharding - native and hybrid support 
+- [X] Partitioning / Sharding - native and hybrid support 
 - [X] Message bus abstraction for synchronous and asynchronous communication
   - [X] Point-to-Point
   - [X] Publish/Subscribe
@@ -75,7 +75,7 @@ This is a list of features that I would like to implement in the future. The lis
   - [X] In-memory
     - [X] Ack/Nack
     - [X] Consumers Groups
-    - [ ] Partitioning
+    - [X] Partitioning
   - [ ] Message brokers/Streaming platforms
     - [ ] Redis Streams
     - [ ] Iggy.rs

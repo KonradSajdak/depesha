@@ -48,7 +48,7 @@ export class BroadcastStream<T>
     return consumer
   }
 
-  public pipe(producer: StreamProducer<T>): StreamProducer<T> {
+  public pipe<TSource extends StreamProducer<T>>(producer: TSource): TSource {
     const consumer = this.consume() as Stream<T>
     this.pipes.set(producer, consumer)
 
