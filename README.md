@@ -65,7 +65,7 @@ This is a list of features that I would like to implement in the future. The lis
 - [X] Message bus abstraction for synchronous and asynchronous communication
   - [X] Point-to-Point
   - [X] Publish/Subscribe
-  - [ ] Request/Response
+  - [X] Request/Response
 - [ ] Hybrid-adaptive patterns blocks
   - [ ] Pipes/Middlewares
   - [ ] Channels
