@@ -36,7 +36,13 @@ The main goal of the project is to create a library implementing __message-based
 <!-- GETTING STARTED -->
 ## Getting Started
 
-Doesn't have something to show yet. Project is in planning, but on the days will be more, and more 🎉 Planning stuff also. 😎
+Temporary you can develop code and run tests. Next iteration will bring npm package.
+
+- Clone this repository
+- Install the latest LTS version of Node.js
+- Enable Corepack using `corepack enable`
+- Install dependencies using `pnpm install`
+- Run tests using 'pnpm test' or mutation tests `pnpm test:mutation`
 
 <!-- CONCEPTS -->
 ## Concepts
