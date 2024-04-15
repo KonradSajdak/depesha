@@ -42,7 +42,7 @@ Temporary you can develop code and run tests. Next iteration will bring npm pack
 - Install the latest LTS version of Node.js
 - Enable Corepack using `corepack enable`
 - Install dependencies using `pnpm install`
-- Run tests using 'pnpm test' or mutation tests `pnpm test:mutation`
+- Run tests using `pnpm test` or mutation tests `pnpm test:mutation`
 
 <!-- CONCEPTS -->
 ## Concepts
