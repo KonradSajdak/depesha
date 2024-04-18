@@ -4,7 +4,6 @@ import {
   ChannelWasClosedException,
 } from "./exception"
 import { LinkedList, Locked } from "./linked-list"
-import { pipe } from "./pipe"
 
 export interface Pushed<T> {
   value: T
@@ -28,22 +27,14 @@ export interface SyncStreamProducer<T> {
 
 export type StreamProducer<T> = SyncStreamProducer<T> | AsyncStreamProducer<T>
 export type StreamConsumer<T> = { pull(): Promise<Pending<T>>, isClosed(): boolean }
-export interface StreamPipe<T> {
-  pipe<TSource extends StreamProducer<T>>(producer: TSource): TSource
-  unpipe(producer: StreamProducer<T>): void
-  unpipeAll(): void
-}
 
-export type UnpipeCallback = () => void
 export class Stream<T>
   implements
     SyncStreamProducer<T>,
     AsyncStreamProducer<T>,
-    StreamConsumer<T>,
-    StreamPipe<T>
+    StreamConsumer<T>
 {
   private closed: boolean = false
-  private pipes: Map<StreamProducer<T>, UnpipeCallback> = new Map()
 
   public readonly stream: LinkedList<Pushed<T>>
   public readonly pending: Deferred<Pending<T>>[]
@@ -109,50 +100,7 @@ export class Stream<T>
     return this.createMessage(value, next, defer)
   }
 
-  public pipe<TSource extends StreamProducer<T>>(stream: TSource): TSource {
-    const unsubscribe = pipe(this, stream);
-    this.pipes.set(stream, unsubscribe);
-
-    return stream;
-
-    // let unsubscribed = false
-
-    // const waitForMessage = async () => {
-    //   while (!this.closed && !unsubscribed) {
-    //     const message = await this.pull()
-
-    //     await stream
-    //       .push(message.value)
-    //       .then(() => message.commit())
-    //       .catch(reason => message.reject(reason))
-    //   }
-    // }
-
-    // this.pipes.set(stream, () => {
-    //   unsubscribed = true
-    //   this.pipes.delete(stream)
-    // })
-
-    // waitForMessage()
-
-    // return stream
-  }
-
-  public unpipe(stream: StreamProducer<T>) {
-    const unsubscribe = this.pipes.get(stream)
-    if (!unsubscribe) return;
-    
-    unsubscribe()
-    this.pipes.delete(stream)
-  }
-
-  public unpipeAll() {
-    this.pipes.forEach(unsubscribe => unsubscribe())
-  }
-
   public async close() {
-    this.unpipeAll()
-
     this.closed = true
 
     const reject = (defer: Deferred<any>) => {

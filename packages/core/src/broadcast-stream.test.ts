@@ -5,6 +5,7 @@ import {
   ChannelWasClosedException,
 } from "./exception"
 import { autoCommit } from "./auto-commit"
+import { fromBroadcastStream } from "./pipe"
 
 describe("BroadcastSteam", () => {
   test("should consume a stream concurrently", async () => {
@@ -54,7 +55,8 @@ describe("BroadcastSteam", () => {
     const consumer = streamB.consume()
 
     // when
-    streamA.pipe(streamB)
+    // streamA.pipe(streamB)
+    fromBroadcastStream(streamA).pipe(streamB)
 
     const messages = ["A", "B", "C", "D"]
     messages.forEach(message => streamA.push(message))
@@ -76,8 +78,9 @@ describe("BroadcastSteam", () => {
     const consumerB = streamB.consume()
 
     // when
-    streamC.pipe(streamA)
-    streamC.pipe(streamB)
+    const sinkC = fromBroadcastStream(streamC)
+    sinkC.pipe(streamA)
+    sinkC.pipe(streamB)
 
     const messages = ["A", "B", "C", "D"]
     messages.forEach(message => streamC.push(message))
@@ -100,9 +103,10 @@ describe("BroadcastSteam", () => {
     const streamB = new BroadcastStream<string>()
 
     const consumerB = streamB.consume()
+    const sinkA = fromBroadcastStream(streamA);
 
     // when
-    streamA.pipe(streamB)
+    sinkA.pipe(streamB)
     const messages = ["A", "B"]
     messages.forEach(message => streamA.push(message))
 
@@ -113,7 +117,7 @@ describe("BroadcastSteam", () => {
     ).toEqual(messages)
 
     // when
-    streamA.unpipe(streamB)
+    sinkA.unpipe(streamB)
     streamA.push("C")
     streamB.push("D")
 

@@ -5,6 +5,7 @@ import {
   ChannelWasClosedException,
 } from "./exception"
 import { autoCommit } from "./auto-commit"
+import { fromStream } from "./pipe"
 
 describe("Stream", () => {
   test("should push a message async", async () => {
@@ -226,9 +227,10 @@ describe("Stream", () => {
     // given
     const streamA = new Stream<string>()
     const streamB = new Stream<string>()
+    const sinkA = fromStream(streamA);
 
     // when
-    streamA.pipe(streamB)
+    sinkA.pipe(streamB)
 
     const messages = ["A", "B", "C", "D"]
     messages.forEach(message => streamA.push(message))
@@ -246,9 +248,11 @@ describe("Stream", () => {
     const streamB = new Stream<string>()
     const streamC = new Stream<string>()
 
+    const sinkA = fromStream(streamA)
+
     // when
-    streamA.pipe(streamB)
-    streamA.pipe(streamC)
+    sinkA.pipe(streamB)
+    sinkA.pipe(streamC)
 
     const messages = ["A", "B", "C", "D"]
     messages.forEach(message => streamA.push(message))
@@ -269,9 +273,10 @@ describe("Stream", () => {
     // given
     const streamA = new Stream<string>()
     const streamB = new Stream<string>()
+    const sinkA = fromStream(streamA)
 
     // when
-    streamA.pipe(streamB)
+    sinkA.pipe(streamB)
     const messages = ["A", "B"]
     messages.forEach(message => streamA.push(message))
 
@@ -282,7 +287,7 @@ describe("Stream", () => {
     ).toEqual(messages)
 
     // when
-    streamA.unpipe(streamB)
+    sinkA.unpipe(streamB)
     streamA.push("C")
     streamB.push("D")
 
@@ -297,9 +302,11 @@ describe("Stream", () => {
     const streamB = new Stream<string>()
     const streamC = new Stream<string>()
 
+    const sinkA = fromStream(streamA)
+
     // when
-    streamA.pipe(streamB)
-    streamA.pipe(streamC)
+    sinkA.pipe(streamB)
+    sinkA.pipe(streamC)
 
     const messages = ["A", "B"]
     messages.forEach(message => streamA.push(message))
@@ -315,7 +322,7 @@ describe("Stream", () => {
     ).toEqual(["B"])
 
     // when
-    streamA.unpipeAll()
+    sinkA.unpipeAll()
     streamA.push("C")
     streamB.push("D")
     streamC.push("E")

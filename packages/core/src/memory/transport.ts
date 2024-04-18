@@ -9,9 +9,10 @@ import {
   Transport,
 } from "../transport"
 import { Channel } from "../channel"
-import { Pending, StreamConsumer, StreamPipe } from "../stream"
+import { Pending, StreamConsumer } from "../stream"
 import { Transformer } from "../transformer"
 import { Subscriber } from "../subscriber"
+import { fromConsumer } from "../pipe"
 
 const DEFAULT_CHANNEL = "default-channel";
 const DEFAULT_GROUP = "default-group";
@@ -58,7 +59,7 @@ export class InMemoryTransport implements Transport {
   public consumer(options?: ConsumerOptions): Consumer {
     const consumers: Map<
       PropertyKey,
-      StreamConsumer<Message> & StreamPipe<Message>
+      StreamConsumer<Message>
     > = new Map()
 
     const consumeFrom = (options?: ConsumingOptions) => {
@@ -93,11 +94,11 @@ export class InMemoryTransport implements Transport {
       ) => {
         const consumer = consumeFrom(options)
 
-        consumer
+        const sink = fromConsumer(consumer)
           .pipe(new Transformer((message: Message) => message.toRaw()))
           .pipe(new Subscriber(callback))
 
-        return () => consumer.unpipeAll()
+        return () => sink.destroy()
       },
     }
   }
