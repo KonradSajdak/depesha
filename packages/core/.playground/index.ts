@@ -1,7 +1,6 @@
-//ts-worksheet-with-variables
-import { withMemoryTransport } from "./memory"
-import { MessageConstruction } from "./message"
-import { Consumer, Producer, Transmission, Transport } from "./transport"
+import { withMemoryTransport } from "../src/memory"
+import { MessageConstruction } from "../src/message"
+import { Consumer, Producer, Transmission, Transport } from "../src/transport"
 
 // const ENV = {}
 
@@ -27,11 +26,11 @@ const producer = transport.producer({ defaultTransmission: Transmission.ASYNC })
 const consumer = transport.consumer()
 
 const main = async () => {
-  // consumer.subscribe(
-  //   message => {
-  //     console.log(message)
-  //   }
-  // )
+  consumer.subscribe(
+    message => {
+      console.log(message)
+    }
+  )
 
   await producer.send("hello")
   await producer.send("world")
