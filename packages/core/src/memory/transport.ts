@@ -94,11 +94,11 @@ export class InMemoryTransport implements Transport {
       ) => {
         const consumer = consumeFrom(options)
 
-        const sink = fromConsumer(consumer)
+        const flow = fromConsumer(consumer)
           .pipe(new Transformer((message: Message) => message.toRaw()))
           .pipe(new Subscriber(callback))
 
-        return () => sink.destroy()
+        return () => flow.destroy()
       },
     }
   }

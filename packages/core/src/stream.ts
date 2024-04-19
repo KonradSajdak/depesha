@@ -28,6 +28,22 @@ export interface SyncStreamProducer<T> {
 export type StreamProducer<T> = SyncStreamProducer<T> | AsyncStreamProducer<T>
 export type StreamConsumer<T> = { pull(): Promise<Pending<T>>, isClosed(): boolean }
 
+export const isProducer = (producer: unknown): producer is StreamProducer<any> => {
+  return typeof producer === 'object' 
+    && producer !== null 
+    && 'push' in producer 
+    && typeof producer.push === "function";
+}
+
+export const isConsumer = (consumer: unknown): consumer is StreamConsumer<any> => {
+  return typeof consumer === 'object'
+    && consumer !== null
+    && 'pull' in consumer
+    && 'isClosed' in consumer
+    && typeof consumer.pull === "function" 
+    && typeof consumer.isClosed === "function";
+}
+
 export class Stream<T>
   implements
     SyncStreamProducer<T>,

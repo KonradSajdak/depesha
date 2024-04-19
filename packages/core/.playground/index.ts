@@ -26,11 +26,11 @@ const producer = transport.producer({ defaultTransmission: Transmission.ASYNC })
 const consumer = transport.consumer()
 
 const main = async () => {
-  // consumer.subscribe(
-  //   message => {
-  //     console.log(message)
-  //   }
-  // )
+  consumer.subscribe(
+    message => {
+      console.log(message)
+    }
+  )
 
   await producer.send("hello")
   await producer.send("world")
