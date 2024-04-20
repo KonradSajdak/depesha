@@ -1,14 +1,19 @@
-import { R } from "vitest/dist/reporters-LqC_WI4d";
 import { BroadcastStream } from "./broadcast-stream";
-import { Forwarder } from "./forwarder";
 import { Stream, StreamConsumer, StreamProducer, isConsumer } from "./stream"
 
 export const pipe = <T>(source: StreamConsumer<T>, target: StreamProducer<T>): () => void => {
-  let unsubscribed = false;
+  let isUnsubscribed = false;
+  const unsubscribe = () => isUnsubscribed = true;
 
   const subscribe = async () => {
-    while (!source.isClosed() && !unsubscribed) {
+    while (!source.isClosed() && !isUnsubscribed) {
       const message = await source.pull()
+
+      if (isUnsubscribed) {
+        message.rollback()
+        return
+      };
+
       await target
         .push(message.value)
         .then(() => message.commit())
@@ -18,9 +23,7 @@ export const pipe = <T>(source: StreamConsumer<T>, target: StreamProducer<T>): (
 
   subscribe();
 
-  return () => {
-    unsubscribed = true
-  }
+  return unsubscribe;
 }
 
 export class Flow {
@@ -53,7 +56,7 @@ export class Pipe<T> {
     return new Flow(() => this.unpipe(producerOrStream)) as R;
   }
 
-  unpipe(stream: StreamProducer<T> | Stream<T>): void {
+  unpipe(stream: StreamProducer<T>): void {
     const unsubscribe = this.pipes.get(stream)
     if (!unsubscribe) return
 
@@ -64,6 +67,14 @@ export class Pipe<T> {
   unpipeAll(): void {
     this.pipes.forEach(unsubscribe => unsubscribe())
     this.pipes.clear()
+  }
+
+  isPiped(stream: StreamProducer<T>): boolean {
+    return this.pipes.has(stream)
+  }
+
+  totalPipes(): number {
+    return this.pipes.size
   }
 
   destroy() {

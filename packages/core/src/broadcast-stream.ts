@@ -6,7 +6,6 @@ import {
   AsyncStreamProducer,
   Stream,
   StreamConsumer,
-  StreamProducer,
   SyncStreamProducer,
 } from "./stream"
 
