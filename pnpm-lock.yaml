@@ -29,9 +29,6 @@ importers:
       '@stryker-mutator/vitest-runner':
         specifier: ^8.2.6
         version: 8.2.6(@stryker-mutator/core@8.2.6)(vitest@1.5.0(@types/node@20.12.7))
-      '@types/node':
-        specifier: ^20.12.7
-        version: 20.12.7
       '@typescript-eslint/eslint-plugin':
         specifier: ^7.7.0
         version: 7.7.0(@typescript-eslint/parser@7.7.0(eslint@8.57.0)(typescript@5.4.5))(eslint@8.57.0)(typescript@5.4.5)
@@ -2294,6 +2291,7 @@ snapshots:
   '@types/node@20.12.7':
     dependencies:
       undici-types: 5.26.5
+    optional: true
 
   '@types/semver@7.5.8': {}
 
@@ -3413,7 +3411,8 @@ snapshots:
 
   underscore@1.13.6: {}
 
-  undici-types@5.26.5: {}
+  undici-types@5.26.5:
+    optional: true
 
   universalify@0.1.2: {}
 

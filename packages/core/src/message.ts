@@ -1,5 +1,5 @@
 // https://www.enterpriseintegrationpatterns.com/patterns/messaging/MessageConstructionIntro.html
-import { randomUUID } from "node:crypto"
+import { randomUUID } from "./utils/random-uuid"
 import { Transmission } from "./transport"
 
 export interface AvailableMessageHeaders {
