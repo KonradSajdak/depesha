@@ -6,13 +6,17 @@ export enum Transmission {
   ASYNC = "async",
 }
 
-export interface ProducerOptions {
-  defaultTransmission?: Transmission
+export type BaseTransportOptions = Record<PropertyKey, any>
+
+export interface ProducerOptions<TransportOptions extends BaseTransportOptions> {
+  defaultTransmission?: Transmission,
+  transportOptions?: TransportOptions
 }
 
-export interface ConsumerOptions {
+export interface ConsumerOptions<TransportOptions extends BaseTransportOptions> {
   defaultChannel?: string
-  defaultGroupId?: string
+  defaultGroupId?: string,
+  transportOptions?: TransportOptions
 }
 
 export interface ConsumingOptions {
@@ -39,7 +43,10 @@ export interface Subscriber {
 
 export interface Consumer extends Receiver, Subscriber {}
 
-export interface Transport {
-  producer(options?: ProducerOptions, ...args: unknown[]): Producer
-  consumer(options?: ConsumerOptions, ...args: unknown[]): Consumer
+export interface Transport<
+  ProducerTransportOptions extends BaseTransportOptions,
+  ConsumerTransportOptions extends BaseTransportOptions
+> {
+  producer(options?: ProducerOptions<ProducerTransportOptions>, ...args: unknown[]): Producer
+  consumer(options?: ConsumerOptions<ConsumerTransportOptions>, ...args: unknown[]): Consumer
 }
