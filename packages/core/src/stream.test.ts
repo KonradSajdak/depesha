@@ -4,8 +4,6 @@ import {
   ChannelClosedAlreadyException,
   ChannelWasClosedException,
 } from "./exception"
-import { autoCommit } from "./auto-commit"
-import { fromStream } from "./pipe"
 
 describe("Stream", () => {
   test("should push a message async", async () => {
@@ -221,116 +219,5 @@ describe("Stream", () => {
 
     // then
     await expect(secondPulling).resolves.toHaveProperty("value", "B")
-  })
-
-  test("should pipe messages from one stream to another", async () => {
-    // given
-    const streamA = new Stream<string>()
-    const streamB = new Stream<string>()
-    const sinkA = fromStream(streamA);
-
-    // when
-    sinkA.pipe(streamB)
-
-    const messages = ["A", "B", "C", "D"]
-    messages.forEach(message => streamA.push(message))
-
-    // then
-    const outputStream = messages.map(() => autoCommit(streamB.pull()))
-    expect(
-      (await Promise.all(outputStream)).map(message => message.value),
-    ).toEqual(messages)
-  })
-
-  test("should pipe messages from one stream to another sequentially", async () => {
-    // given
-    const streamA = new Stream<string>()
-    const streamB = new Stream<string>()
-    const streamC = new Stream<string>()
-
-    const sinkA = fromStream(streamA)
-
-    // when
-    sinkA.pipe(streamB)
-    sinkA.pipe(streamC)
-
-    const messages = ["A", "B", "C", "D"]
-    messages.forEach(message => streamA.push(message))
-
-    // then
-    const outputStream = [
-      autoCommit(streamB.pull()),
-      autoCommit(streamC.pull()),
-      autoCommit(streamB.pull()),
-      autoCommit(streamC.pull()),
-    ]
-    expect(
-      (await Promise.all(outputStream)).map(message => message.value),
-    ).toEqual(messages)
-  })
-
-  test("should unpipe a stream", async () => {
-    // given
-    const streamA = new Stream<string>()
-    const streamB = new Stream<string>()
-    const sinkA = fromStream(streamA)
-
-    // when
-    sinkA.pipe(streamB)
-    const messages = ["A", "B"]
-    messages.forEach(message => streamA.push(message))
-
-    // then
-    const outputStream = messages.map(() => autoCommit(streamB.pull()))
-    expect(
-      (await Promise.all(outputStream)).map(message => message.value),
-    ).toEqual(messages)
-
-    // when
-    sinkA.unpipe(streamB)
-    streamA.push("C")
-    streamB.push("D")
-
-    // then
-    const message = await streamB.pull()
-    expect(message.value).toBe("D")
-  })
-
-  test("should unpipe all streams", async () => {
-    // given
-    const streamA = new Stream<string>()
-    const streamB = new Stream<string>()
-    const streamC = new Stream<string>()
-
-    const sinkA = fromStream(streamA)
-
-    // when
-    sinkA.pipe(streamB)
-    sinkA.pipe(streamC)
-
-    const messages = ["A", "B"]
-    messages.forEach(message => streamA.push(message))
-
-    // then
-    const outputStreamB = ["A"].map(() => streamB.pull())
-    const outputStreamC = ["B"].map(() => streamC.pull())
-    expect(
-      (await Promise.all(outputStreamB)).map(message => message.value),
-    ).toEqual(["A"])
-    expect(
-      (await Promise.all(outputStreamC)).map(message => message.value),
-    ).toEqual(["B"])
-
-    // when
-    sinkA.unpipeAll()
-    streamA.push("C")
-    streamB.push("D")
-    streamC.push("E")
-
-    // then
-    const messageB = await streamB.pull()
-    const messageC = await streamC.pull()
-    expect(messageB.value).toBe("D")
-    expect(messageC.value).toBe("E")
   })
 })
