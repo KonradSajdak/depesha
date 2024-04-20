@@ -2,28 +2,27 @@ import { BroadcastStream } from "./broadcast-stream";
 import { Stream, StreamConsumer, StreamProducer, isConsumer } from "./stream"
 
 export const pipe = <T>(source: StreamConsumer<T>, target: StreamProducer<T>): () => void => {
-  let isUnsubscribed = false;
-  const unsubscribe = () => isUnsubscribed = true;
+  let isDestroyed = false;
+  const destroy = () => isDestroyed = true;
 
-  const subscribe = async () => {
-    while (!source.isClosed() && !isUnsubscribed) {
+  const run = async () => {
+    while (!source.isClosed() && !isDestroyed) {
       const message = await source.pull()
 
-      if (isUnsubscribed) {
-        message.rollback()
-        return
+      if (isDestroyed) {
+        return message.rollback()
       };
 
       await target
         .push(message.value)
         .then(() => message.commit())
-        .catch((reason) => message.reject(reason))
+        .catch(reason => message.reject(reason))
     }
   }
 
-  subscribe();
+  run();
 
-  return unsubscribe;
+  return destroy;
 }
 
 export class Flow {
