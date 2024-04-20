@@ -2,10 +2,12 @@ import {
   PendingMessage,
   Stream,
   StreamConsumer,
-  StreamProducer
+  StreamProducer,
 } from "./stream"
 
-export class Transformer<T, O = T> implements StreamProducer<T>, StreamConsumer<O> {
+export class Transformer<T, O = T>
+  implements StreamProducer<T>, StreamConsumer<O>
+{
   private readonly stream = new Stream<O>()
 
   public constructor(private readonly mapper: (value: T) => O) {}

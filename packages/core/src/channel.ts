@@ -1,10 +1,6 @@
 import { BroadcastStream } from "./broadcast-stream"
 import { Pipe, fromBroadcastStream } from "./pipe"
-import {
-  Stream,
-  StreamConsumer,
-  StreamProducer
-} from "./stream"
+import { Stream, StreamConsumer, StreamProducer } from "./stream"
 
 export interface ChannelMessageOptions {
   partition?: number
@@ -32,9 +28,7 @@ export class Channel<T> implements StreamProducer<T> {
     return await this.partitions[partitionIndex].push(value)
   }
 
-  public consume(
-    options?: ChannelConsumerOptions,
-  ): StreamConsumer<T> {
+  public consume(options?: ChannelConsumerOptions): StreamConsumer<T> {
     const groupId = options?.groupId ?? Symbol()
     const group = this.groups.get(groupId) ?? []
 
@@ -53,7 +47,7 @@ export class Channel<T> implements StreamProducer<T> {
   }
 
   private rebalanceGroup(groupId: PropertyKey) {
-    this.detachGroupFromPartitions(groupId);
+    this.detachGroupFromPartitions(groupId)
 
     const group = this.groups.get(groupId) ?? []
 
@@ -66,7 +60,7 @@ export class Channel<T> implements StreamProducer<T> {
 
     const average = Math.floor(totalPartitions / totalConsumers)
     const remainder = totalPartitions % totalConsumers
-    const pipes: Pipe<T>[] = [];
+    const pipes: Pipe<T>[] = []
 
     for (let i = 0; i < totalConsumers; i++) {
       const start = i * average + Math.min(i, remainder)
@@ -75,16 +69,20 @@ export class Channel<T> implements StreamProducer<T> {
       const partitions = this.partitions.slice(start, end)
       const consumer = group[i]
 
-      pipes.push(...partitions.map(partition => fromBroadcastStream(partition).pipe(consumer)));
+      pipes.push(
+        ...partitions.map(partition =>
+          fromBroadcastStream(partition).pipe(consumer),
+        ),
+      )
     }
 
-    this.attachGroupToPartitions(groupId, pipes);
+    this.attachGroupToPartitions(groupId, pipes)
   }
 
   private detachGroupFromPartitions(groupId: PropertyKey) {
     const pipes = this.pipes.get(groupId) ?? []
     pipes.forEach(pipe => pipe.unpipeAll())
-    this.pipes.delete(groupId);
+    this.pipes.delete(groupId)
   }
 
   private attachGroupToPartitions(groupId: PropertyKey, pipes: Pipe<T>[]) {

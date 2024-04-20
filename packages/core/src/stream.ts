@@ -23,22 +23,33 @@ export interface PullingOptions {
 }
 
 export type StreamProducer<T> = { push(value: T): Promise<T> }
-export type StreamConsumer<T> = { pull(options?: PullingOptions): Promise<PendingMessage<T>>, isClosed(): boolean }
-
-export const isProducer = (producer: unknown): producer is StreamProducer<any> => {
-  return typeof producer === 'object' 
-    && producer !== null 
-    && 'push' in producer 
-    && typeof producer.push === "function";
+export type StreamConsumer<T> = {
+  pull(options?: PullingOptions): Promise<PendingMessage<T>>
+  isClosed(): boolean
 }
 
-export const isConsumer = (consumer: unknown): consumer is StreamConsumer<any> => {
-  return typeof consumer === 'object'
-    && consumer !== null
-    && 'pull' in consumer
-    && 'isClosed' in consumer
-    && typeof consumer.pull === "function" 
-    && typeof consumer.isClosed === "function";
+export const isProducer = (
+  producer: unknown,
+): producer is StreamProducer<any> => {
+  return (
+    typeof producer === "object" &&
+    producer !== null &&
+    "push" in producer &&
+    typeof producer.push === "function"
+  )
+}
+
+export const isConsumer = (
+  consumer: unknown,
+): consumer is StreamConsumer<any> => {
+  return (
+    typeof consumer === "object" &&
+    consumer !== null &&
+    "pull" in consumer &&
+    "isClosed" in consumer &&
+    typeof consumer.pull === "function" &&
+    typeof consumer.isClosed === "function"
+  )
 }
 
 export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
@@ -64,14 +75,14 @@ export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
         return defer.resolve(value)
       },
       rollback: () => {
-        const pending = this.pending.shift();
+        const pending = this.pending.shift()
         if (!pending) {
           node.rollback()
-          return Promise.resolve();
+          return Promise.resolve()
         }
 
-        const message = this.createMessage(value, node, defer);
-        return pending.resolve(message);
+        const message = this.createMessage(value, node, defer)
+        return pending.resolve(message)
       },
       reject: (reason?: any) => {
         node.commit()
@@ -104,23 +115,20 @@ export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
       throw new ChannelClosedAlreadyException()
     }
 
-    const timeout = options?.timeout ?? null;
+    const timeout = options?.timeout ?? null
     const next = this.stream.shiftWithLock()
 
     if (!next) {
       const defer = new Deferred<PendingMessage<T>>()
       this.pending.push(defer)
 
-      if (timeout === null) return defer.promise;
+      if (timeout === null) return defer.promise
 
-      const cancelTimeout = setTimeout(
-        () => {
-          defer.reject(new PullingTimeoutException(timeout))
-        },
-        timeout,
-      );
+      const cancelTimeout = setTimeout(() => {
+        defer.reject(new PullingTimeoutException(timeout))
+      }, timeout)
 
-      return defer.promise.finally(() => clearTimeout(cancelTimeout));
+      return defer.promise.finally(() => clearTimeout(cancelTimeout))
     }
 
     const { value, defer } = next.value

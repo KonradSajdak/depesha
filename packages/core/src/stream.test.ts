@@ -12,7 +12,7 @@ describe("Stream", () => {
   })
 
   afterEach(() => {
-    vi.resetAllMocks();
+    vi.resetAllMocks()
   })
 
   test("should push a message async", async () => {
@@ -58,27 +58,27 @@ describe("Stream", () => {
 
   test("should reject timeout when pulling message", async () => {
     // given
-    const stream = new Stream<string>();
+    const stream = new Stream<string>()
 
     // when
-    const result = stream.pull({ timeout: 10000 });
-    vi.advanceTimersByTime(10001);
+    const result = stream.pull({ timeout: 10000 })
+    vi.advanceTimersByTime(10001)
 
     // then
-    await expect(result).rejects.toThrow("Pulling timeout of 10000ms exceeded.");
+    await expect(result).rejects.toThrow("Pulling timeout of 10000ms exceeded.")
   })
 
   test("should pull message before timeout", async () => {
     // given
-    const stream = new Stream<string>();
+    const stream = new Stream<string>()
 
     // when
-    const result = stream.pull({ timeout: 10000 });
-    vi.advanceTimersByTime(5000);
-    stream.push("test");
+    const result = stream.pull({ timeout: 10000 })
+    vi.advanceTimersByTime(5000)
+    stream.push("test")
 
     // then
-    await expect(result).resolves.toHaveProperty("value", "test");
+    await expect(result).resolves.toHaveProperty("value", "test")
   })
 
   test("should pull a stream after pushing", async () => {
@@ -217,23 +217,23 @@ describe("Stream", () => {
 
   test("should push rollbacked message to pending", async () => {
     // given
-    const stream = new Stream<string>();
-    const pendingA = stream.pull();
-    const pendingB = stream.pull();
+    const stream = new Stream<string>()
+    const pendingA = stream.pull()
+    const pendingB = stream.pull()
 
     // when
-    stream.push("A");
+    stream.push("A")
 
     // then
-    const messageA = await pendingA;
-    expect(messageA.value).toBe("A");
+    const messageA = await pendingA
+    expect(messageA.value).toBe("A")
 
     // when
-    await messageA.rollback();
+    await messageA.rollback()
 
     // then
-    const messageB = await pendingB;
-    expect(messageB.value).toBe("A");
+    const messageB = await pendingB
+    expect(messageB.value).toBe("A")
   })
 
   test("should only commit or rollback once", async () => {
@@ -280,11 +280,14 @@ describe("Stream", () => {
 describe("isConsumer", () => {
   test.each([
     [new Stream<string>(), true],
-    [new class implements StreamProducer<string> {
-      push(value: string): Promise<string> {
-        return Promise.resolve(value);
-      }
-    }, false],
+    [
+      new (class implements StreamProducer<string> {
+        push(value: string): Promise<string> {
+          return Promise.resolve(value)
+        }
+      })(),
+      false,
+    ],
     [null, false],
     [undefined, false],
     [1, false],
@@ -300,11 +303,14 @@ describe("isConsumer", () => {
 describe("isProducer", () => {
   test.each([
     [new Stream<string>(), true],
-    [new class implements StreamProducer<string> {
-      push(value: string): Promise<string> {
-        return Promise.resolve(value);
-      }
-    }, true],
+    [
+      new (class implements StreamProducer<string> {
+        push(value: string): Promise<string> {
+          return Promise.resolve(value)
+        }
+      })(),
+      true,
+    ],
     [null, false],
     [undefined, false],
     [1, false],

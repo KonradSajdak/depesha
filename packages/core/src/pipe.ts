@@ -1,9 +1,12 @@
-import { BroadcastStream } from "./broadcast-stream";
+import { BroadcastStream } from "./broadcast-stream"
 import { Stream, StreamConsumer, StreamProducer, isConsumer } from "./stream"
 
-export const pipe = <T>(source: StreamConsumer<T>, target: StreamProducer<T>): () => void => {
-  let isDestroyed = false;
-  const destroy = () => isDestroyed = true;
+export const pipe = <T>(
+  source: StreamConsumer<T>,
+  target: StreamProducer<T>,
+): (() => void) => {
+  let isDestroyed = false
+  const destroy = () => (isDestroyed = true)
 
   const run = async () => {
     while (!source.isClosed() && !isDestroyed) {
@@ -11,7 +14,7 @@ export const pipe = <T>(source: StreamConsumer<T>, target: StreamProducer<T>): (
 
       if (isDestroyed) {
         return message.rollback()
-      };
+      }
 
       await target
         .push(message.value)
@@ -20,30 +23,38 @@ export const pipe = <T>(source: StreamConsumer<T>, target: StreamProducer<T>): (
     }
   }
 
-  run();
+  run()
 
-  return destroy;
+  return destroy
 }
 
 export class Flow {
   public constructor(private readonly destroyer: () => void) {}
 
   destroy() {
-    this.destroyer();
+    this.destroyer()
   }
 }
 
 export class Pipe<T> {
   private pipes: Map<StreamProducer<T>, () => void> = new Map()
 
-  public constructor(private readonly streamOrFactory: StreamConsumer<T> | (() => StreamConsumer<T>), private readonly previousPipe?: Pipe<unknown>) {}
+  public constructor(
+    private readonly streamOrFactory:
+      | StreamConsumer<T>
+      | (() => StreamConsumer<T>),
+    private readonly previousPipe?: Pipe<unknown>,
+  ) {}
 
   pipe<
     S extends StreamProducer<T> | (StreamProducer<T> & StreamConsumer<O>),
     O = S extends StreamConsumer<infer X> ? X : never,
-    R = S extends StreamConsumer<O> ? Pipe<O> : Flow
+    R = S extends StreamConsumer<O> ? Pipe<O> : Flow,
   >(producerOrStream: S): R {
-    const source = typeof this.streamOrFactory === "function" ? this.streamOrFactory() : this.streamOrFactory
+    const source =
+      typeof this.streamOrFactory === "function"
+        ? this.streamOrFactory()
+        : this.streamOrFactory
 
     const unsubscribe = pipe(source, producerOrStream)
     this.pipes.set(producerOrStream, unsubscribe)
@@ -52,7 +63,7 @@ export class Pipe<T> {
       return new Pipe(producerOrStream, this) as R
     }
 
-    return new Flow(() => this.unpipe(producerOrStream)) as R;
+    return new Flow(() => this.unpipe(producerOrStream)) as R
   }
 
   unpipe(stream: StreamProducer<T>): void {
@@ -77,19 +88,19 @@ export class Pipe<T> {
   }
 
   destroy() {
-    this.unpipeAll();
+    this.unpipeAll()
     this.previousPipe?.destroy()
   }
 }
 
 export const fromConsumer = <T>(consumer: StreamConsumer<T>) => {
-  return new Pipe(consumer);
+  return new Pipe(consumer)
 }
 
 export const fromStream = <T>(stream: Stream<T>) => {
-  return new Pipe(stream);
+  return new Pipe(stream)
 }
 
 export const fromBroadcastStream = <T>(stream: BroadcastStream<T>) => {
-  return new Pipe(() => stream.consume());
+  return new Pipe(() => stream.consume())
 }

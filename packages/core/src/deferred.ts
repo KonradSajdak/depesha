@@ -10,7 +10,7 @@ export class Deferred<T> {
         return this.promiseInstance
       }
 
-      this.rejectPromise = (reason?: any) => reject(reason);
+      this.rejectPromise = (reason?: any) => reject(reason)
     })
   }
 

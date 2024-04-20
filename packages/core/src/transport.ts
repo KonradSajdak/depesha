@@ -8,14 +8,18 @@ export enum Transmission {
 
 export type BaseTransportOptions = Record<PropertyKey, any>
 
-export interface ProducerOptions<TransportOptions extends BaseTransportOptions> {
-  defaultTransmission?: Transmission,
+export interface ProducerOptions<
+  TransportOptions extends BaseTransportOptions,
+> {
+  defaultTransmission?: Transmission
   transportOptions?: TransportOptions
 }
 
-export interface ConsumerOptions<TransportOptions extends BaseTransportOptions> {
+export interface ConsumerOptions<
+  TransportOptions extends BaseTransportOptions,
+> {
   defaultChannel?: string
-  defaultGroupId?: string,
+  defaultGroupId?: string
   transportOptions?: TransportOptions
 }
 
@@ -45,8 +49,8 @@ export interface Consumer extends Receiver, Subscriber {}
 
 export interface Transport<
   ProducerTransportOptions extends BaseTransportOptions,
-  ConsumerTransportOptions extends BaseTransportOptions
+  ConsumerTransportOptions extends BaseTransportOptions,
 > {
-  producer(options?: ProducerOptions<ProducerTransportOptions>, ...args: unknown[]): Producer
-  consumer(options?: ConsumerOptions<ConsumerTransportOptions>, ...args: unknown[]): Consumer
+  producer(options?: ProducerOptions<ProducerTransportOptions>): Producer
+  consumer(options?: ConsumerOptions<ConsumerTransportOptions>): Consumer
 }

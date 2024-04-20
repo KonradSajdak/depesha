@@ -2,14 +2,9 @@ import {
   ChannelClosedAlreadyException,
   ChannelWasClosedException,
 } from "./exception"
-import {
-  Stream,
-  StreamConsumer,
-  StreamProducer
-} from "./stream"
+import { Stream, StreamConsumer, StreamProducer } from "./stream"
 
-export class BroadcastStream<T> implements StreamProducer<T>
-{
+export class BroadcastStream<T> implements StreamProducer<T> {
   private readonly buffer: T[] = []
   private readonly consumers: Stream<T>[] = []
 

@@ -22,10 +22,10 @@ import { Consumer, Producer, Transmission, Transport } from "../src/transport"
 
 const transport = withMemoryTransport()
 
-const producer = transport.producer({ 
-  defaultTransmission: Transmission.ASYNC, 
-  transportOptions: { bufferLimit: 10 } }
-)
+const producer = transport.producer({
+  defaultTransmission: Transmission.ASYNC,
+  transportOptions: { bufferLimit: 10 },
+})
 const consumer = transport.consumer()
 
 const main = async () => {
@@ -51,7 +51,7 @@ const main = async () => {
 
   await message.commit()
 
-  const message2 = await consumer.receive({ groupId: "B" });
+  const message2 = await consumer.receive({ groupId: "B" })
 
   console.log(message2)
 }
