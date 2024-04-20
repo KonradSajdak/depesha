@@ -1,16 +1,11 @@
 import {
   Pending,
   Stream,
-  StreamConsumer
+  StreamConsumer,
+  StreamProducer
 } from "./stream"
-import { AsyncStreamProducer, SyncStreamProducer } from "./stream"
 
-export class Transformer<T, O = T>
-  implements
-    SyncStreamProducer<T>,
-    AsyncStreamProducer<T>,
-    StreamConsumer<O>
-{
+export class Transformer<T, O = T> implements StreamProducer<T>, StreamConsumer<O> {
   private readonly stream = new Stream<O>()
 
   public constructor(private readonly mapper: (value: T) => O) {}

@@ -4,7 +4,7 @@ import {
   ChannelClosedAlreadyException,
   ChannelWasClosedException,
 } from "./exception"
-import { Stream, SyncStreamProducer, isConsumer, isProducer } from "./stream"
+import { Stream, StreamProducer, isConsumer, isProducer } from "./stream"
 
 describe("Stream", () => {
   beforeEach(() => {
@@ -280,7 +280,7 @@ describe("Stream", () => {
 describe("isConsumer", () => {
   test.each([
     [new Stream<string>(), true],
-    [new class implements SyncStreamProducer<string> {
+    [new class implements StreamProducer<string> {
       push(value: string): Promise<string> {
         return Promise.resolve(value);
       }
@@ -300,7 +300,7 @@ describe("isConsumer", () => {
 describe("isProducer", () => {
   test.each([
     [new Stream<string>(), true],
-    [new class implements SyncStreamProducer<string> {
+    [new class implements StreamProducer<string> {
       push(value: string): Promise<string> {
         return Promise.resolve(value);
       }

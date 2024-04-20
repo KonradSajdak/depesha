@@ -3,14 +3,12 @@ import {
   ChannelWasClosedException,
 } from "./exception"
 import {
-  AsyncStreamProducer,
   Stream,
   StreamConsumer,
-  SyncStreamProducer,
+  StreamProducer
 } from "./stream"
 
-export class BroadcastStream<T>
-  implements SyncStreamProducer<T>, AsyncStreamProducer<T>
+export class BroadcastStream<T> implements StreamProducer<T>
 {
   private readonly buffer: T[] = []
   private readonly consumers: Stream<T>[] = []

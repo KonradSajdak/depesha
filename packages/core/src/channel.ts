@@ -1,10 +1,9 @@
 import { BroadcastStream } from "./broadcast-stream"
 import { Pipe, fromBroadcastStream } from "./pipe"
 import {
-  AsyncStreamProducer,
   Stream,
   StreamConsumer,
-  SyncStreamProducer,
+  StreamProducer
 } from "./stream"
 
 export interface ChannelMessageOptions {
@@ -15,9 +14,7 @@ export interface ChannelConsumerOptions {
   groupId?: string
 }
 
-export class Channel<T>
-  implements SyncStreamProducer<T>, AsyncStreamProducer<T>
-{
+export class Channel<T> implements StreamProducer<T> {
   private readonly partitions: BroadcastStream<T>[] = []
   private readonly groups: Map<PropertyKey, Stream<T>[]> = new Map()
   private readonly pipes: Map<PropertyKey, Pipe<T>[]> = new Map()

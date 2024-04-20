@@ -18,19 +18,11 @@ export interface Pending<T> {
   reject: (reason?: any) => void
 }
 
-export interface AsyncStreamProducer<T> {
-  push(value: T): Promise<any>
-}
-
-export interface SyncStreamProducer<T> {
-  push(value: T): Promise<T>
-}
-
 export interface PullingOptions {
   timeout?: number
 }
 
-export type StreamProducer<T> = SyncStreamProducer<T> | AsyncStreamProducer<T>
+export type StreamProducer<T> = { push(value: T): Promise<T> }
 export type StreamConsumer<T> = { pull(options?: PullingOptions): Promise<Pending<T>>, isClosed(): boolean }
 
 export const isProducer = (producer: unknown): producer is StreamProducer<any> => {
@@ -49,12 +41,7 @@ export const isConsumer = (consumer: unknown): consumer is StreamConsumer<any> =
     && typeof consumer.isClosed === "function";
 }
 
-export class Stream<T>
-  implements
-    SyncStreamProducer<T>,
-    AsyncStreamProducer<T>,
-    StreamConsumer<T>
-{
+export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
   private closed: boolean = false
 
   public readonly stream: LinkedList<Pushed<T>>

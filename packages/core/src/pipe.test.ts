@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { Stream, SyncStreamProducer } from "./stream";
+import { Stream, StreamProducer } from "./stream";
 import { fromBroadcastStream, fromStream, pipe } from "./pipe";
 import { autoCommit } from "./auto-commit";
 import { BroadcastStream } from "./broadcast-stream";
@@ -93,7 +93,7 @@ describe("Pipe", () => {
       const streamA = new Stream<string>();
       const streamB = new Stream<string>();
       const streamC = new Stream<string>();
-      const rejecter = new class implements SyncStreamProducer<string> {
+      const rejecter = new class implements StreamProducer<string> {
         public async push(value: string): Promise<string> {
           throw new Error("Error");
         }
