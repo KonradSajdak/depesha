@@ -13,14 +13,6 @@ describe("Deferred", () => {
     expect(result).toBe("test")
   })
 
-  test("should rejects a Promise", async () => {
-    // given
-    const deferred = new Deferred()
-
-    // then
-    await expect(deferred.reject(new Error())).rejects.toThrowError()
-  })
-
   test("should resolve a shared Promise instance", async () => {
     // given
     const deferred = new Deferred()
@@ -39,7 +31,7 @@ describe("Deferred", () => {
     const promise = deferred.promise
 
     // when
-    await expect(deferred.reject(new Error())).rejects.toThrowError()
+    await deferred.reject(new Error())
 
     // then
     await expect(promise).rejects.toThrowError()

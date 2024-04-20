@@ -74,7 +74,7 @@ export class Stream<T>
       rollback: node.rollback,
       reject: (reason?: any) => {
         node.commit()
-        return defer.reject(reason).catch(() => {})
+        return defer.reject(reason)
       },
     }
   }
@@ -120,7 +120,7 @@ export class Stream<T>
     this.closed = true
 
     const reject = (defer: Deferred<any>) => {
-      defer.reject(new ChannelWasClosedException()).catch(() => {})
+      defer.reject(new ChannelWasClosedException())
     }
 
     await Promise.allSettled([
