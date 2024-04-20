@@ -22,7 +22,10 @@ import { Consumer, Producer, Transmission, Transport } from "../src/transport"
 
 const transport = withMemoryTransport()
 
-const producer = transport.producer({ defaultTransmission: Transmission.ASYNC })
+const producer = transport.producer({ 
+  defaultTransmission: Transmission.ASYNC, 
+  transportOptions: { bufferLimit: 10 } }
+)
 const consumer = transport.consumer()
 
 const main = async () => {
@@ -32,11 +35,11 @@ const main = async () => {
   //   }
   // )
 
-  producer.send("hello")
-  producer.send("world")
-  producer.send("how")
-  producer.send("are")
-  producer.send("you")
+  await producer.send("hello")
+  await producer.send("world")
+  await producer.send("how")
+  await producer.send("are")
+  await producer.send("you")
 
   // const result = await Promise.all(messages.map(message => producer.send({ body: message, headers: { channel: "orders" } })))
 
@@ -48,7 +51,7 @@ const main = async () => {
 
   await message.commit()
 
-  const message2 = await consumer.receive({ groupId: "A" });
+  const message2 = await consumer.receive({ groupId: "B" });
 
   console.log(message2)
 }

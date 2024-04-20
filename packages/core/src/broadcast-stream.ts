@@ -39,7 +39,6 @@ export class BroadcastStream<T>
     this.consumers.push(consumer)
 
     this.buffer.forEach(message => this.push(message))
-    this.buffer.length = 0
 
     return consumer
   }
