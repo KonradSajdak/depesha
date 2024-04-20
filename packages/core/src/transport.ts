@@ -10,7 +10,10 @@ export interface ProducerOptions {
   defaultTransmission?: Transmission
 }
 
-export interface ConsumerOptions {}
+export interface ConsumerOptions {
+  defaultChannel?: string
+  defaultGroupId?: string
+}
 
 export interface ConsumingOptions {
   channel?: string

@@ -16,7 +16,6 @@ import { fromConsumer } from "../pipe"
 
 const DEFAULT_CHANNEL = "default-channel";
 const DEFAULT_GROUP = "default-group";
-const DEFAULT_CONSUMER = `${DEFAULT_CHANNEL}:${DEFAULT_GROUP}`;
 
 export class InMemoryTransport implements Transport {
   private readonly channels: Map<PropertyKey, Channel<Message>> = new Map([
@@ -56,25 +55,17 @@ export class InMemoryTransport implements Transport {
     }
   }
 
-  public consumer(options?: ConsumerOptions): Consumer {
+  public consumer(consumerOptions?: ConsumerOptions): Consumer {
     const consumers: Map<
       PropertyKey,
       StreamConsumer<Message>
     > = new Map()
 
     const consumeFrom = (options?: ConsumingOptions) => {
-      const channel = options?.channel ?? DEFAULT_CHANNEL
-      const groupId = options?.groupId ?? DEFAULT_GROUP
+      const channel = options?.channel ?? consumerOptions?.defaultChannel ?? DEFAULT_CHANNEL
+      const groupId = options?.groupId ?? consumerOptions?.defaultGroupId ?? DEFAULT_GROUP
 
       const consumingKey = `${channel}:${groupId}`
-
-      if (!options?.channel && !options?.groupId) {
-        if (!consumers.has(DEFAULT_CONSUMER)) {
-          consumers.set(DEFAULT_CONSUMER, this.channel().consume())
-        }
-
-        return consumers.get(DEFAULT_CONSUMER)!
-      }
 
       if (!consumers.has(consumingKey)) {
         consumers.set(consumingKey, this.channel(channel).consume({ groupId }))
