@@ -1,5 +1,4 @@
-import { afterEach } from "node:test"
-import { beforeEach, describe, expect, test, vi } from "vitest"
+import { beforeEach, afterEach, describe, expect, test, vi } from "vitest"
 import {
   ChannelClosedAlreadyException,
   ChannelWasClosedException,
