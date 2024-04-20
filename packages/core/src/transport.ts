@@ -1,5 +1,5 @@
 import { Message, MessageConstruction, MessageRaw } from "./message"
-import { Pending } from "./stream"
+import { PendingMessage } from "./stream"
 
 export enum Transmission {
   SYNC = "sync",
@@ -31,7 +31,7 @@ export interface Producer {
 export interface Receiver {
   receive<T>(
     options?: Partial<ConsumingOptions>,
-  ): Promise<Pending<Message<T>>>
+  ): Promise<PendingMessage<Message<T>>>
 }
 
 export interface Subscriber {

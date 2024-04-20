@@ -6,12 +6,12 @@ import {
 } from "./exception"
 import { LinkedList, Locked } from "./linked-list"
 
-export interface Pushed<T> {
+export interface PushedMessage<T> {
   value: T
   defer: Deferred<T>
 }
 
-export interface Pending<T> {
+export interface PendingMessage<T> {
   value: T
   commit: () => void
   rollback: () => void
@@ -23,7 +23,7 @@ export interface PullingOptions {
 }
 
 export type StreamProducer<T> = { push(value: T): Promise<T> }
-export type StreamConsumer<T> = { pull(options?: PullingOptions): Promise<Pending<T>>, isClosed(): boolean }
+export type StreamConsumer<T> = { pull(options?: PullingOptions): Promise<PendingMessage<T>>, isClosed(): boolean }
 
 export const isProducer = (producer: unknown): producer is StreamProducer<any> => {
   return typeof producer === 'object' 
@@ -44,8 +44,8 @@ export const isConsumer = (consumer: unknown): consumer is StreamConsumer<any> =
 export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
   private closed: boolean = false
 
-  public readonly stream: LinkedList<Pushed<T>>
-  public readonly pending: Deferred<Pending<T>>[]
+  public readonly stream: LinkedList<PushedMessage<T>>
+  public readonly pending: Deferred<PendingMessage<T>>[]
 
   public constructor() {
     this.stream = new LinkedList()
@@ -54,9 +54,9 @@ export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
 
   private createMessage(
     value: T,
-    node: Locked<Pushed<T>>,
+    node: Locked<PushedMessage<T>>,
     defer: Deferred<T>,
-  ): Pending<T> {
+  ): PendingMessage<T> {
     return {
       value,
       commit: () => {
@@ -99,7 +99,7 @@ export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
     return defer.promise
   }
 
-  public async pull(options?: PullingOptions): Promise<Pending<T>> {
+  public async pull(options?: PullingOptions): Promise<PendingMessage<T>> {
     if (this.closed) {
       throw new ChannelClosedAlreadyException()
     }
@@ -108,7 +108,7 @@ export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
     const next = this.stream.shiftWithLock()
 
     if (!next) {
-      const defer = new Deferred<Pending<T>>()
+      const defer = new Deferred<PendingMessage<T>>()
       this.pending.push(defer)
 
       if (timeout === null) return defer.promise;

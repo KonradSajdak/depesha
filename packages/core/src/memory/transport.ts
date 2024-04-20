@@ -9,7 +9,7 @@ import {
   Transport,
 } from "../transport"
 import { Channel } from "../channel"
-import { Pending, StreamConsumer } from "../stream"
+import { PendingMessage, StreamConsumer } from "../stream"
 import { Transformer } from "../transformer"
 import { Subscriber } from "../subscriber"
 import { fromConsumer } from "../pipe"
@@ -82,7 +82,7 @@ export class InMemoryTransport implements Transport<InMemoryProducerTransportOpt
 
     return {
       receive: async <T>(options?: ConsumingOptions) => {
-        return await consumeFrom(options).pull() as Pending<Message<T>>
+        return await consumeFrom(options).pull() as PendingMessage<Message<T>>
       },
 
       subscribe: <T>(

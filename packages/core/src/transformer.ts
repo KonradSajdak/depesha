@@ -1,5 +1,5 @@
 import {
-  Pending,
+  PendingMessage,
   Stream,
   StreamConsumer,
   StreamProducer
@@ -15,7 +15,7 @@ export class Transformer<T, O = T> implements StreamProducer<T>, StreamConsumer<
     return value
   }
 
-  public async pull(): Promise<Pending<O>> {
+  public async pull(): Promise<PendingMessage<O>> {
     return this.stream.pull()
   }
 
