@@ -2,6 +2,7 @@ import { Deferred } from "./deferred"
 import {
   ChannelClosedAlreadyException,
   ChannelWasClosedException,
+  PullingTimeoutException,
 } from "./exception"
 import { LinkedList, Locked } from "./linked-list"
 
@@ -25,8 +26,12 @@ export interface SyncStreamProducer<T> {
   push(value: T): Promise<T>
 }
 
+export interface PullingOptions {
+  timeout?: number
+}
+
 export type StreamProducer<T> = SyncStreamProducer<T> | AsyncStreamProducer<T>
-export type StreamConsumer<T> = { pull(): Promise<Pending<T>>, isClosed(): boolean }
+export type StreamConsumer<T> = { pull(options?: PullingOptions): Promise<Pending<T>>, isClosed(): boolean }
 
 export const isProducer = (producer: unknown): producer is StreamProducer<any> => {
   return typeof producer === 'object' 
@@ -98,18 +103,28 @@ export class Stream<T>
     return defer.promise
   }
 
-  public async pull(): Promise<Pending<T>> {
+  public async pull(options?: PullingOptions): Promise<Pending<T>> {
     if (this.closed) {
       throw new ChannelClosedAlreadyException()
     }
 
+    const timeout = options?.timeout ?? null;
     const next = this.stream.shiftWithLock()
 
     if (!next) {
       const defer = new Deferred<Pending<T>>()
       this.pending.push(defer)
 
-      return defer.promise
+      if (timeout === null) return defer.promise;
+
+      const cancelTimeout = setTimeout(
+        () => {
+          defer.reject(new PullingTimeoutException(timeout))
+        },
+        timeout,
+      );
+
+      return defer.promise.finally(() => clearTimeout(cancelTimeout));
     }
 
     const { value, defer } = next.value

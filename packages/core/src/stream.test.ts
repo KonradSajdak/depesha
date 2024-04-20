@@ -1,11 +1,20 @@
-import { test, expect, describe } from "vitest"
+import { test, expect, describe, beforeEach, vi } from "vitest"
 import { Stream } from "./stream"
 import {
   ChannelClosedAlreadyException,
   ChannelWasClosedException,
 } from "./exception"
+import { afterEach } from "node:test"
 
 describe("Stream", () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.resetAllMocks();
+  })
+
   test("should push a message async", async () => {
     // given
     const stream = new Stream<string>()
@@ -45,6 +54,18 @@ describe("Stream", () => {
 
     // then
     await expect(result).resolves.toHaveProperty("value", "test")
+  })
+
+  test("should reject timeout when pulling message", async () => {
+    // given
+    const stream = new Stream<string>();
+
+    // when
+    const result = stream.pull({ timeout: 10000 });
+    vi.advanceTimersByTime(10001);
+
+    // then
+    await expect(result).rejects.toThrow("Pulling timeout of 10000ms exceeded.");
   })
 
   test("should pull a stream after pushing", async () => {
