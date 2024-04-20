@@ -78,7 +78,6 @@ export class Channel<T>
       const partitions = this.partitions.slice(start, end)
       const consumer = group[i]
 
-      // partitions.forEach(partition => partition.pipe(consumer))
       pipes.push(...partitions.map(partition => fromBroadcastStream(partition).pipe(consumer)));
     }
 
