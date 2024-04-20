@@ -76,7 +76,16 @@ export class Stream<T>
         node.commit()
         return defer.resolve(value)
       },
-      rollback: node.rollback,
+      rollback: () => {
+        const pending = this.pending.shift();
+        if (!pending) {
+          node.rollback()
+          return Promise.resolve();
+        }
+
+        const message = this.createMessage(value, node, defer);
+        return pending.resolve(message);
+      },
       reject: (reason?: any) => {
         node.commit()
         return defer.reject(reason)

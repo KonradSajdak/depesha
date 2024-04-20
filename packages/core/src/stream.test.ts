@@ -1,10 +1,10 @@
-import { test, expect, describe, beforeEach, vi } from "vitest"
-import { Stream } from "./stream"
+import { afterEach } from "node:test"
+import { beforeEach, describe, expect, test, vi } from "vitest"
 import {
   ChannelClosedAlreadyException,
   ChannelWasClosedException,
 } from "./exception"
-import { afterEach } from "node:test"
+import { Stream, SyncStreamProducer, isConsumer, isProducer } from "./stream"
 
 describe("Stream", () => {
   beforeEach(() => {
@@ -66,6 +66,19 @@ describe("Stream", () => {
 
     // then
     await expect(result).rejects.toThrow("Pulling timeout of 10000ms exceeded.");
+  })
+
+  test("should pull message before timeout", async () => {
+    // given
+    const stream = new Stream<string>();
+
+    // when
+    const result = stream.pull({ timeout: 10000 });
+    vi.advanceTimersByTime(5000);
+    stream.push("test");
+
+    // then
+    await expect(result).resolves.toHaveProperty("value", "test");
   })
 
   test("should pull a stream after pushing", async () => {
@@ -184,15 +197,15 @@ describe("Stream", () => {
     expect(messageC.value).toBe("C")
 
     // when
-    messageB.rollback()
+    await messageB.rollback()
 
     // then
     const messageB2 = await stream.pull()
     expect(messageB2.value).toBe("B")
 
     // when
-    messageA.rollback()
-    messageC.rollback()
+    await messageA.rollback()
+    await messageC.rollback()
 
     // then
     const messageA2 = await stream.pull()
@@ -200,6 +213,27 @@ describe("Stream", () => {
 
     expect(messageA2.value).toBe("A")
     expect(messageC2.value).toBe("C")
+  })
+
+  test("should push rollbacked message to pending", async () => {
+    // given
+    const stream = new Stream<string>();
+    const pendingA = stream.pull();
+    const pendingB = stream.pull();
+
+    // when
+    stream.push("A");
+
+    // then
+    const messageA = await pendingA;
+    expect(messageA.value).toBe("A");
+
+    // when
+    await messageA.rollback();
+
+    // then
+    const messageB = await pendingB;
+    expect(messageB.value).toBe("A");
   })
 
   test("should only commit or rollback once", async () => {
@@ -217,7 +251,7 @@ describe("Stream", () => {
 
     // when
     const messageB = await stream.pull()
-    messageB.rollback()
+    await messageB.rollback()
 
     // then
     expect(() => messageB.commit()).toThrow("Rollback already.")
@@ -240,5 +274,45 @@ describe("Stream", () => {
 
     // then
     await expect(secondPulling).resolves.toHaveProperty("value", "B")
+  })
+})
+
+describe("isConsumer", () => {
+  test.each([
+    [new Stream<string>(), true],
+    [new class implements SyncStreamProducer<string> {
+      push(value: string): Promise<string> {
+        return Promise.resolve(value);
+      }
+    }, false],
+    [null, false],
+    [undefined, false],
+    [1, false],
+    ["test", false],
+    [{}, false],
+    [() => {}, false],
+  ])("should return %p for consumer", (consumer, expected) => {
+    // then
+    expect(isConsumer(consumer)).toBe(expected)
+  })
+})
+
+describe("isProducer", () => {
+  test.each([
+    [new Stream<string>(), true],
+    [new class implements SyncStreamProducer<string> {
+      push(value: string): Promise<string> {
+        return Promise.resolve(value);
+      }
+    }, true],
+    [null, false],
+    [undefined, false],
+    [1, false],
+    ["test", false],
+    [{}, false],
+    [() => {}, false],
+  ])("should return %p for producer", (producer, expected) => {
+    // then
+    expect(isProducer(producer)).toBe(expected)
   })
 })
