@@ -17,19 +17,11 @@ import { fromConsumer } from "../pipe"
 const DEFAULT_CHANNEL = "default-channel"
 const DEFAULT_GROUP = "default-group"
 
-export interface InMemoryProducerTransportOptions {
+export interface InMemoryProducerOptions extends ProducerOptions {
   bufferLimit?: number
 }
 
-export interface InMemoryConsumerTransportOptions {}
-
-export class InMemoryTransport
-  implements
-    Transport<
-      InMemoryProducerTransportOptions,
-      InMemoryConsumerTransportOptions
-    >
-{
+export class InMemoryTransport implements Transport<InMemoryProducerOptions> {
   private readonly channels: Map<PropertyKey, Channel<Message>> = new Map([
     [DEFAULT_CHANNEL, new Channel<Message>()],
   ])
@@ -44,9 +36,7 @@ export class InMemoryTransport
     return this.channels.get(channel)!
   }
 
-  public producer(
-    options?: ProducerOptions<InMemoryProducerTransportOptions>,
-  ): Producer {
+  public producer(options?: InMemoryProducerOptions): Producer {
     return {
       send: async <T>(construction: MessageConstruction<T>) => {
         const message = Message.createFromConstruction(construction)
@@ -70,7 +60,7 @@ export class InMemoryTransport
   }
 
   public consumer(
-    consumerOptions?: ConsumerOptions<InMemoryConsumerTransportOptions>,
+    consumerOptions?: ConsumerOptions,
   ): Consumer {
     const consumers: Map<PropertyKey, StreamConsumer<Message>> = new Map()
 

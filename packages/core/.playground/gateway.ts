@@ -1,6 +1,7 @@
 import { withMemoryTransport } from "../src/memory"
 import { MessageConstruction } from "../src/message"
 import { Consumer, Producer, Transmission, Transport } from "../src/transport"
+import { createGateway } from "../src/gateway"
 
 // const ENV = {}
 
@@ -28,6 +29,8 @@ const producer = transport.producer({
 })
 const consumer = transport.consumer()
 
+const gateway = createGateway([producer, consumer])
+
 const main = async () => {
   // consumer.subscribe(
   //   message => {
@@ -35,23 +38,23 @@ const main = async () => {
   //   }
   // )
 
-  await producer.send("hello")
-  await producer.send("world")
-  await producer.send("how")
-  await producer.send("are")
-  await producer.send("you")
+  await gateway.send("hello")
+  await gateway.send("world")
+  await gateway.send("how")
+  await gateway.send("are")
+  await gateway.send("you")
 
   // const result = await Promise.all(messages.map(message => producer.send({ body: message, headers: { channel: "orders" } })))
 
   // console.log(result)
 
-  const message = await consumer.receive({ groupId: "A" })
+  const message = await gateway.receive({ groupId: "A" })
 
   console.log(message)
 
   await message.commit()
 
-  const message2 = await consumer.receive({ groupId: "B" })
+  const message2 = await gateway.receive({ groupId: "B" })
 
   console.log(message2)
 }

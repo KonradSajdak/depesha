@@ -8,19 +8,13 @@ export enum Transmission {
 
 export type BaseTransportOptions = Record<PropertyKey, any>
 
-export interface ProducerOptions<
-  TransportOptions extends BaseTransportOptions,
-> {
+export interface ProducerOptions {
   defaultTransmission?: Transmission
-  transportOptions?: TransportOptions
 }
 
-export interface ConsumerOptions<
-  TransportOptions extends BaseTransportOptions,
-> {
+export interface ConsumerOptions {
   defaultChannel?: string
   defaultGroupId?: string
-  transportOptions?: TransportOptions
 }
 
 export interface ConsumingOptions {
@@ -34,23 +28,31 @@ export interface Producer {
 
 export interface Receiver {
   receive<T>(
-    options?: Partial<ConsumingOptions>,
+    options?: ConsumingOptions,
   ): Promise<PendingMessage<Message<T>>>
 }
 
 export interface Subscriber {
   subscribe<T>(
     callback: (message: MessageRaw<T>) => void,
-    options?: Partial<ConsumingOptions>,
+    options?: ConsumingOptions,
   ): () => void
 }
 
 export interface Consumer extends Receiver, Subscriber {}
 
 export interface Transport<
-  ProducerTransportOptions extends BaseTransportOptions,
-  ConsumerTransportOptions extends BaseTransportOptions,
+  TransportProducerOptions extends ProducerOptions = ProducerOptions,
+  TransportConsumerOptions extends ConsumerOptions = ConsumerOptions,
 > {
-  producer(options?: ProducerOptions<ProducerTransportOptions>): Producer
-  consumer(options?: ConsumerOptions<ConsumerTransportOptions>): Consumer
+  producer(options?: TransportProducerOptions): Producer
+  consumer(options?: TransportConsumerOptions): Consumer
+}
+
+export const isTransport = (value: unknown): value is Transport => {
+  return (
+    typeof value === "object" &&
+    typeof (value as Transport).producer === "function" &&
+    typeof (value as Transport).consumer === "function"
+  )
 }
