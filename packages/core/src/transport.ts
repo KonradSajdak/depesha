@@ -27,9 +27,7 @@ export interface Producer {
 }
 
 export interface Receiver {
-  receive<T>(
-    options?: ConsumingOptions,
-  ): Promise<PendingMessage<Message<T>>>
+  receive<T>(options?: ConsumingOptions): Promise<PendingMessage<Message<T>>>
 }
 
 export interface Subscriber {

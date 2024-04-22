@@ -59,9 +59,7 @@ export class InMemoryTransport implements Transport<InMemoryProducerOptions> {
     }
   }
 
-  public consumer(
-    consumerOptions?: ConsumerOptions,
-  ): Consumer {
+  public consumer(consumerOptions?: ConsumerOptions): Consumer {
     const consumers: Map<PropertyKey, StreamConsumer<Message>> = new Map()
 
     const consumeFrom = (options?: ConsumingOptions) => {
