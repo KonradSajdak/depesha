@@ -1,4 +1,3 @@
-import { withMemoryTransport } from "./memory"
 import { Message, MessageConstruction, MessageRaw } from "./message"
 import { PendingMessage } from "./stream"
 import {
@@ -65,15 +64,6 @@ const isUserGatewayConfiguration = (
   )
 }
 
-const configuration: GatewayConfiguration = {
-  transports: {
-    memory: withMemoryTransport(),
-  },
-  channels: {
-    orders: "memory",
-  },
-}
-
 export class Gateway implements Producer, Consumer {
   private transports: Map<TransportName, [Producer, Consumer]> = new Map()
   private channels: Map<ChannelName, TransportName> = new Map()
@@ -87,8 +77,7 @@ export class Gateway implements Producer, Consumer {
         continue
       }
 
-      const { producer, consumer } = transport
-      this.transports.set(transportName, [producer(), consumer()])
+      this.transports.set(transportName, [transport.producer(), transport.consumer()])
     }
 
     for (const [channelName, transportName] of Object.entries(
@@ -163,6 +152,17 @@ function toGatewayConfiguration(
     | UserChannelsConfiguration
     | UserGatewayConfiguration,
 ): GatewayConfiguration {
+  if (isTransport(configuration)) {
+    return {
+      transports: {
+        default: configuration,
+      },
+      channels: {
+        default: "default",
+      },
+    }
+  }
+
   if (isUserChannelsConfiguration(configuration)) {
     return {
       transports: configuration.channels,

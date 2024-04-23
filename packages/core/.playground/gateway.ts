@@ -29,7 +29,8 @@ const producer = transport.producer({
 })
 const consumer = transport.consumer()
 
-const gateway = createGateway([producer, consumer])
+const gateway = createGateway(withMemoryTransport());
+// const gateway = createGateway([producer, consumer])
 
 const main = async () => {
   // consumer.subscribe(
