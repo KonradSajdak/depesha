@@ -183,7 +183,7 @@ function toGatewayConfiguration(
         }
 
         return [
-          { ...channels, [channelName]: [`${channelName}__transport`] },
+          { ...channels, [channelName]: `${channelName}__transport` },
           { ...transports, [`${channelName}__transport`]: transport },
         ]
       },

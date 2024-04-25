@@ -30,29 +30,25 @@ const producer = transport.producer({
 const consumer = transport.consumer()
 
 const gateway = createGateway({
+  transports: {
+    memory: withMemoryTransport(),
+  },
   channels: {
     orders: [producer, consumer],
-    invoices: withMemoryTransport(),
+    invoices: 'memory',
+    'warehouse-request': 'memory',
+    'warehouse-replay': 'memory',
   }
 });
 // const gateway = createGateway([producer, consumer])
 
 const main = async () => {
-  // consumer.subscribe(
-  //   message => {
-  //     console.log(message)
-  //   }
-  // )
-
   await gateway.send({ body: "hello", headers: { channel: "orders" } })
   await gateway.send({ body: "world", headers: { channel: "invoices" } })
   await gateway.send({ body: "how", headers: { channel: "orders" } })
   await gateway.send({ body: "are", headers: { channel: "invoices" } })
   await gateway.send({ body: "you", headers: { channel: "orders" } })
-
-  // const result = await Promise.all(messages.map(message => producer.send({ body: message, headers: { channel: "orders" } })))
-
-  // console.log(result)
+  await gateway.send({ body: "you", headers: { channel: "warehouse-request" } })
 
   const message = await gateway.receive({ groupId: "A", channel: "orders" })
 
@@ -63,6 +59,10 @@ const main = async () => {
   const message2 = await gateway.receive({ groupId: "A+B", channel: "invoices" })
 
   console.log(message2)
+
+  const message3 = await gateway.receive({ groupId: "A", channel: "warehouse-request" })
+
+  console.log(message3)
 }
 
 main()
