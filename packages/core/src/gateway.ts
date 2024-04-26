@@ -1,12 +1,11 @@
-import { UserChannelsConfiguration, UserGatewayConfiguration, toGatewayConfiguration } from "./gateway-configuration"
+import {
+  UserChannelsConfiguration,
+  UserGatewayConfiguration,
+  toGatewayConfiguration,
+} from "./gateway-configuration"
 import { Message, MessageConstruction, MessageRaw } from "./message"
 import { PendingMessage } from "./stream"
-import {
-  Consumer,
-  ConsumingOptions,
-  Producer,
-  Transport
-} from "./transport"
+import { Consumer, ConsumingOptions, Producer, Transport } from "./transport"
 
 export type ChannelName = string
 export type TransportName = string
@@ -46,7 +45,10 @@ export class Gateway implements Producer, Consumer {
         continue
       }
 
-      this.transports.set(transportName, [transport.producer(), transport.consumer()])
+      this.transports.set(transportName, [
+        transport.producer(),
+        transport.consumer(),
+      ])
     }
 
     for (const [channelName, transportName] of Object.entries(

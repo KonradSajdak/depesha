@@ -1,4 +1,9 @@
-import { GatewayChannelsConfiguration, GatewayChannelsWithTransportsConfiguration, GatewayConfiguration, GatewayTransportsConfiguration } from "./gateway"
+import {
+  GatewayChannelsConfiguration,
+  GatewayChannelsWithTransportsConfiguration,
+  GatewayConfiguration,
+  GatewayTransportsConfiguration,
+} from "./gateway"
 import { Consumer, Producer, Transport, isTransport } from "./transport"
 
 export interface UserGatewayConfiguration {

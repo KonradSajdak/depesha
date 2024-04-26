@@ -35,11 +35,11 @@ const gateway = createGateway({
   },
   channels: {
     orders: [producer, consumer],
-    invoices: 'memory',
-    'warehouse-request': 'memory',
-    'warehouse-replay': 'memory',
-  }
-});
+    invoices: "memory",
+    "warehouse-request": "memory",
+    "warehouse-replay": "memory",
+  },
+})
 // const gateway = createGateway([producer, consumer])
 
 const main = async () => {
@@ -56,11 +56,17 @@ const main = async () => {
 
   await message.commit()
 
-  const message2 = await gateway.receive({ groupId: "A+B", channel: "invoices" })
+  const message2 = await gateway.receive({
+    groupId: "A+B",
+    channel: "invoices",
+  })
 
   console.log(message2)
 
-  const message3 = await gateway.receive({ groupId: "A", channel: "warehouse-request" })
+  const message3 = await gateway.receive({
+    groupId: "A",
+    channel: "warehouse-request",
+  })
 
   console.log(message3)
 }
