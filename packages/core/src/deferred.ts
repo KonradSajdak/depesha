@@ -1,7 +1,7 @@
 export class Deferred<T> {
   private readonly promiseInstance: Promise<T>
   private resolvePromise!: (value: T | PromiseLike<T>) => Promise<T>
-  private rejectPromise!: (reason?: any) => void
+  private rejectPromise!: (reason?: unknown) => void
 
   public constructor() {
     this.promiseInstance = new Promise<T>((resolve, reject) => {
@@ -10,7 +10,7 @@ export class Deferred<T> {
         return this.promiseInstance
       }
 
-      this.rejectPromise = (reason?: any) => reject(reason)
+      this.rejectPromise = (reason?: unknown) => reject(reason)
     })
   }
 
@@ -22,7 +22,7 @@ export class Deferred<T> {
     return this.resolvePromise(value)
   }
 
-  public async reject(reason?: any) {
+  public async reject(reason?: unknown) {
     return this.rejectPromise(reason)
   }
 }

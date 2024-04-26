@@ -6,7 +6,7 @@ export enum Transmission {
   ASYNC = "async",
 }
 
-export type BaseTransportOptions = Record<PropertyKey, any>
+export type BaseTransportOptions = Record<PropertyKey, unknown>
 
 export interface ProducerOptions {
   defaultTransmission?: Transmission

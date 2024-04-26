@@ -1,6 +1,5 @@
 import { withMemoryTransport } from "../src/memory"
-import { MessageConstruction } from "../src/message"
-import { Consumer, Producer, Transmission, Transport } from "../src/transport"
+import { Transmission } from "../src/transport"
 
 // const ENV = {}
 

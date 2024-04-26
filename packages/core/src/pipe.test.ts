@@ -94,7 +94,7 @@ describe("Pipe", () => {
       const streamB = new Stream<string>()
       const streamC = new Stream<string>()
       const rejecter = new (class implements StreamProducer<string> {
-        public async push(value: string): Promise<string> {
+        public async push(): Promise<string> {
           throw new Error("Error")
         }
       })()

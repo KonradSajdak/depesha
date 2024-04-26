@@ -15,14 +15,16 @@ export interface PendingMessage<T> {
   value: T
   commit: () => void
   rollback: () => void
-  reject: (reason?: any) => void
+  reject: (reason?: unknown) => void
 }
 
 export interface PullingOptions {
   timeout?: number
 }
 
-export type StreamProducer<T> = { push(value: T): Promise<T> }
+export type StreamProducer<T> = {
+  push(value: T): Promise<T>
+}
 export type StreamConsumer<T> = {
   pull(options?: PullingOptions): Promise<PendingMessage<T>>
   isClosed(): boolean
@@ -30,7 +32,7 @@ export type StreamConsumer<T> = {
 
 export const isProducer = (
   producer: unknown,
-): producer is StreamProducer<any> => {
+): producer is StreamProducer<unknown> => {
   return (
     typeof producer === "object" &&
     producer !== null &&
@@ -41,7 +43,7 @@ export const isProducer = (
 
 export const isConsumer = (
   consumer: unknown,
-): consumer is StreamConsumer<any> => {
+): consumer is StreamConsumer<unknown> => {
   return (
     typeof consumer === "object" &&
     consumer !== null &&
@@ -84,7 +86,7 @@ export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
         const message = this.createMessage(value, node, defer)
         return pending.resolve(message)
       },
-      reject: (reason?: any) => {
+      reject: (reason?: unknown) => {
         node.commit()
         return defer.reject(reason)
       },
@@ -138,7 +140,7 @@ export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
   public async close() {
     this.closed = true
 
-    const reject = (defer: Deferred<any>) => {
+    const reject = <T>(defer: Deferred<T>) => {
       defer.reject(new ChannelWasClosedException())
     }
 

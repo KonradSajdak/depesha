@@ -1,2 +1,9 @@
-pnpm lint
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+files=$(git diff --cached --name-only --diff-filter=ACM -- '*.ts' '*.js' '*.json');
+pnpm format
+pnpm lint:fix
 pnpm test
+
+git add $files
