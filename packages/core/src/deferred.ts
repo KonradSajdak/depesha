@@ -22,7 +22,7 @@ export class Deferred<T> {
     return this.resolvePromise(value)
   }
 
-  public async reject(reason?: unknown) {
+  public reject(reason?: unknown) {
     return this.rejectPromise(reason)
   }
 }

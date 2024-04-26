@@ -7,14 +7,16 @@ import unusedImports from "eslint-plugin-unused-imports"
 
 export default [
   eslint.configs.recommended,
-  ...tseslint.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
   {
-    files: [
-      "./src/**/*.ts",
-      "./src/**/*.js",
-      "./tests/**/*.ts",
-      "./tests/**/*.js",
-    ],
+    languageOptions: {
+      parserOptions: {
+        project: true,
+      },
+    },
+  },
+  {
+    files: ["src/**/*.ts", "src/**/*.js", "tests/**/*.ts", "tests/**/*.js"],
     plugins: { unusedImports },
     rules: {
       indent: ["error", 2],
@@ -22,9 +24,19 @@ export default [
       quotes: ["error", "double"],
       semi: ["error", "never"],
       "@typescript-eslint/no-unused-vars": "off",
-      "@typescript-eslint/no-explicit-any": { fixToUnknown: true },
+      "@typescript-eslint/no-explicit-any": ["error", { fixToUnknown: true }],
       "unusedImports/no-unused-imports": "error",
+      "@typescript-eslint/no-floating-promises": "off",
     },
+  },
+  {
+    files: [
+      "**/*.js",
+      ".playground/**/*.ts",
+      "**/*.test.ts",
+      "vitest.config.ts",
+    ],
+    ...tseslint.configs.disableTypeChecked,
   },
   prettier,
 ]

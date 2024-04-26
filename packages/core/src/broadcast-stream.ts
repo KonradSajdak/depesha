@@ -31,7 +31,9 @@ export class BroadcastStream<T> implements StreamProducer<T> {
     const consumer = new Stream<T>()
     this.consumers.push(consumer)
 
-    this.buffer.forEach(message => this.push(message))
+    this.buffer.forEach(message => {
+      this.push(message)
+    })
 
     return consumer
   }

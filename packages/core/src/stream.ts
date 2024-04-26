@@ -13,8 +13,8 @@ export interface PushedMessage<T> {
 
 export interface PendingMessage<T> {
   value: T
-  commit: () => void
-  rollback: () => void
+  commit: () => Promise<T>
+  rollback: () => Promise<PendingMessage<T>> | Promise<void>
   reject: (reason?: unknown) => void
 }
 
@@ -140,9 +140,8 @@ export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
   public async close() {
     this.closed = true
 
-    const reject = <T>(defer: Deferred<T>) => {
+    const reject = <T>(defer: Deferred<T>) =>
       defer.reject(new ChannelWasClosedException())
-    }
 
     await Promise.allSettled([
       Promise.allSettled(this.pending.map(defer => reject(defer))),
