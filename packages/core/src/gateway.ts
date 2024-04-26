@@ -1,6 +1,7 @@
 import {
   UserChannelsConfiguration,
   UserGatewayConfiguration,
+  UserTransportsConfiguration,
   toGatewayConfiguration,
 } from "./gateway-configuration"
 import { Message, MessageConstruction, MessageRaw } from "./message"
@@ -119,12 +120,16 @@ export class Gateway implements Producer, Consumer {
 export function createGateway(configuration: Transport): Gateway
 export function createGateway(configuration: [Producer, Consumer]): Gateway
 export function createGateway(configuration: UserChannelsConfiguration): Gateway
+export function createGateway(
+  configuration: UserTransportsConfiguration,
+): Gateway
 export function createGateway(configuration: UserGatewayConfiguration): Gateway
 export function createGateway(
   configuration:
     | Transport
     | [Producer, Consumer]
     | UserChannelsConfiguration
+    | UserTransportsConfiguration
     | UserGatewayConfiguration,
 ): Gateway {
   return new Gateway(toGatewayConfiguration(configuration))

@@ -21,10 +21,23 @@ export interface InMemoryProducerOptions extends ProducerOptions {
   bufferLimit?: number
 }
 
+export interface InMemoryOptions {
+  producer?: InMemoryProducerOptions
+  consumer?: ConsumerOptions
+}
+
 export class InMemoryTransport implements Transport<InMemoryProducerOptions> {
+  private readonly defaultProducerOptions: InMemoryProducerOptions
+  private readonly defaultConsumerOptions: ConsumerOptions
+
   private readonly channels: Map<PropertyKey, Channel<Message>> = new Map([
     [DEFAULT_CHANNEL, new Channel<Message>()],
   ])
+
+  public constructor(options?: InMemoryOptions) {
+    this.defaultProducerOptions = options?.producer ?? {}
+    this.defaultConsumerOptions = options?.consumer ?? {}
+  }
 
   private channel(channel?: string) {
     if (!channel) return this.channels.get(DEFAULT_CHANNEL)!
@@ -43,13 +56,14 @@ export class InMemoryTransport implements Transport<InMemoryProducerOptions> {
         const transmission =
           message.getHeader("transmission") ??
           options?.defaultTransmission ??
+          this.defaultProducerOptions?.defaultTransmission ??
           Transmission.SYNC
 
         const partition = message.getHeader("partition")
 
         const channel = this.channel(message.getHeader("channel"))
 
-        if (transmission === Transmission.ASYNC) {
+        if (transmission === Transmission.SYNC) {
           return channel.push(message, { partition }) as Promise<T>
         }
 
@@ -59,7 +73,9 @@ export class InMemoryTransport implements Transport<InMemoryProducerOptions> {
     }
   }
 
-  public consumer(consumerOptions?: ConsumerOptions): Consumer {
+  public consumer(
+    consumerOptions: ConsumerOptions = this.defaultConsumerOptions,
+  ): Consumer {
     const consumers: Map<PropertyKey, StreamConsumer<Message>> = new Map()
 
     const consumeFrom = (options?: ConsumingOptions) => {

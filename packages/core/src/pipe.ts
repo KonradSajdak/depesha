@@ -91,6 +91,12 @@ export class Pipe<T> {
     this.unpipeAll()
     this.previousPipe?.destroy()
   }
+
+  consume(): StreamConsumer<T> {
+    return typeof this.streamOrFactory === "function"
+      ? this.streamOrFactory()
+      : this.streamOrFactory
+  }
 }
 
 export const fromConsumer = <T>(consumer: StreamConsumer<T>) => {

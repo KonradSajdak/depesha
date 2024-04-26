@@ -15,6 +15,10 @@ export interface UserChannelsConfiguration {
   channels: GatewayChannelsConfiguration
 }
 
+export interface UserTransportsConfiguration {
+  transports: GatewayTransportsConfiguration
+}
+
 const isUserChannelsConfiguration = (
   value: unknown,
 ): value is UserChannelsConfiguration => {
@@ -23,6 +27,17 @@ const isUserChannelsConfiguration = (
     value !== null &&
     "channels" in value &&
     !("transports" in value)
+  )
+}
+
+const isUserTransportsConfiguration = (
+  value: unknown,
+): value is UserTransportsConfiguration => {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "transports" in value &&
+    !("channels" in value)
   )
 }
 
@@ -42,6 +57,7 @@ export function toGatewayConfiguration(
     | Transport
     | [Producer, Consumer]
     | UserChannelsConfiguration
+    | UserTransportsConfiguration
     | UserGatewayConfiguration,
 ): GatewayConfiguration {
   if (isTransport(configuration)) {
@@ -60,6 +76,16 @@ export function toGatewayConfiguration(
       transports: configuration.channels,
       channels: Object.keys(configuration.channels).reduce(
         (acc, channelName) => ({ ...acc, [channelName]: channelName }),
+        {},
+      ),
+    }
+  }
+
+  if (isUserTransportsConfiguration(configuration)) {
+    return {
+      transports: configuration.transports,
+      channels: Object.keys(configuration.transports).reduce(
+        (acc, transportName) => ({ ...acc, [transportName]: transportName }),
         {},
       ),
     }

@@ -1,6 +1,6 @@
 import { withMemoryTransport } from "../src/memory"
 import { Transmission } from "../src/transport"
-import { createGateway } from "../src/gateway"
+import { ChannelName, Gateway, createGateway } from "../src/gateway"
 
 // const ENV = {}
 
@@ -20,54 +20,132 @@ import { createGateway } from "../src/gateway"
 
 // handleMessage({})
 
-const transport = withMemoryTransport()
+// const transport = withMemoryTransport()
 
-const producer = transport.producer({
-  defaultTransmission: Transmission.ASYNC,
-  bufferLimit: 10,
-})
-const consumer = transport.consumer()
+// const producer = transport.producer({
+//   defaultTransmission: Transmission.ASYNC,
+//   bufferLimit: 10,
+// })
+// const consumer = transport.consumer()
+
+interface EventPublisher<T> {
+  publish: (event: T) => Promise<void>
+}
+
+interface EventListener {
+  listen: () => Promise<void>
+}
+
+interface EventBus<T> extends EventPublisher<T>, EventListener {}
+
+const createEventPublisher = <T>(
+  channel: ChannelName,
+  gateway: Gateway,
+): EventPublisher<T> => {
+  return {
+    publish: async (event: T) => {
+      await gateway.send({
+        body: event,
+        headers: { channel },
+      })
+    },
+  }
+}
+
+const createEventListener = (
+  channel: ChannelName,
+  gateway: Gateway,
+): EventListener => {
+  return {
+    listen: async () => {
+      gateway.subscribe(
+        message => {
+          console.log(message)
+        },
+        { channel },
+      )
+    },
+  }
+}
+
+const createEventBus = <T>(
+  channel: ChannelName,
+  gateway: Gateway,
+): EventBus<T> => {
+  const publisher = createEventPublisher(channel, gateway)
+  const listener = createEventListener(channel, gateway)
+
+  return {
+    publish: publisher.publish,
+    listen: listener.listen,
+  }
+}
+
+// const gateway = createGateway({
+//   transports: {
+//     memory: withMemoryTransport(),
+//   },
+//   channels: {
+//     orders: "memory",
+//     invoices: "memory",
+//     "warehouse-request": "memory",
+//     "warehouse-replay": "memory",
+//     events: "memory",
+//   },
+// })
 
 const gateway = createGateway({
-  transports: {
-    memory: withMemoryTransport(),
-  },
   channels: {
-    orders: [producer, consumer],
-    invoices: "memory",
-    "warehouse-request": "memory",
-    "warehouse-replay": "memory",
+    events: withMemoryTransport({
+      producer: { defaultTransmission: Transmission.SYNC },
+    }),
   },
 })
+
+const events = createEventBus("events", gateway)
+
 // const gateway = createGateway([producer, consumer])
 
 const main = async () => {
-  await gateway.send({ body: "hello", headers: { channel: "orders" } })
-  await gateway.send({ body: "world", headers: { channel: "invoices" } })
-  await gateway.send({ body: "how", headers: { channel: "orders" } })
-  await gateway.send({ body: "are", headers: { channel: "invoices" } })
-  await gateway.send({ body: "you", headers: { channel: "orders" } })
-  await gateway.send({ body: "you", headers: { channel: "warehouse-request" } })
+  // await gateway.send({ body: "hello", headers: { channel: "orders" } })
+  // await gateway.send({ body: "world", headers: { channel: "invoices" } })
+  // await gateway.send({ body: "how", headers: { channel: "orders" } })
+  // await gateway.send({ body: "are", headers: { channel: "invoices" } })
+  // await gateway.send({ body: "you", headers: { channel: "orders" } })
+  // await gateway.send({ body: "you", headers: { channel: "warehouse-request" } })
 
-  const message = await gateway.receive({ groupId: "A", channel: "orders" })
+  // gateway.subscribe(
+  //   message => {
+  //     console.log(message)
+  //   },
+  //   { channel: "orders" },
+  // )
+  console.log("listing")
+  events.listen()
 
-  console.log(message)
+  console.log("publishing")
+  await events.publish({ type: "order-created", payload: { orderId: "123" } })
+  console.log("published")
 
-  await message.commit()
+  // const message = await gateway.receive({ groupId: "A", channel: "orders" })
 
-  const message2 = await gateway.receive({
-    groupId: "A+B",
-    channel: "invoices",
-  })
+  // console.log(message.value)
 
-  console.log(message2)
+  // await message.commit()
 
-  const message3 = await gateway.receive({
-    groupId: "A",
-    channel: "warehouse-request",
-  })
+  // const message2 = await gateway.receive({
+  //   groupId: "A+B",
+  //   channel: "invoices",
+  // })
 
-  console.log(message3)
+  // console.log(message2)
+
+  // const message3 = await gateway.receive({
+  //   groupId: "A",
+  //   channel: "warehouse-request",
+  // })
+
+  // console.log(message3)
 }
 
 main()

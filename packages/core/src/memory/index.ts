@@ -1,5 +1,5 @@
-import { InMemoryTransport } from "./transport"
+import { InMemoryOptions, InMemoryTransport } from "./transport"
 
-export function withMemoryTransport() {
-  return new InMemoryTransport()
+export function withMemoryTransport(options?: InMemoryOptions) {
+  return new InMemoryTransport(options)
 }
