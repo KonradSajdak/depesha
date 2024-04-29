@@ -96,7 +96,7 @@ This is a list of features that I would like to implement in the future. The lis
   - [ ] NodeJS Cluster/Threads
   - [ ] HTTP
   - [ ] WebSockets
-  - [ ] Browser
+  - [X] Browser
 - [ ] Pluginable/Extensible (?)
 - [ ] Message patterns
   - [ ] Inbox/Outbox
