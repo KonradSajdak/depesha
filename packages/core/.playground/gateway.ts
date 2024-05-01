@@ -81,6 +81,8 @@ const createEventBus = <T>(
   }
 }
 
+const createCommandBus = () => {} 
+
 // const gateway = createGateway({
 //   transports: {
 //     memory: withMemoryTransport(),
