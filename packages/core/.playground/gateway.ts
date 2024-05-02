@@ -81,7 +81,7 @@ const createEventBus = <T>(
   }
 }
 
-const createCommandBus = () => {} 
+// const createCommandBus = () => {}
 
 // const gateway = createGateway({
 //   transports: {
