@@ -110,6 +110,8 @@ This is a list of features that I would like to implement in the future. The lis
   - [ ] CQRS (Read Models, Projections, etc.)
   - [ ] Event Sourcing
   - [ ] Event Store (?)
+  - [X] Event Bus
+  - [ ] Command Bus
 - [ ] Migrations tools (via message transformation and message routing)
   - [ ] From one transport to another
   - [ ] From one serialization to another
