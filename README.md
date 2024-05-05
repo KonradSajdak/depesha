@@ -132,20 +132,6 @@ Konrad Sajdak - [@konradsajdak](https://twitter.com/konradsajdak) - konrad.sajda
 * [Queueable](https://slikts.github.io/queueable/)
 
 
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/KonradSajdak/depesha.svg
-[contributors-url]: https://github.com/KonradSajdak/depesha/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/KonradSajdak/depesha.svg?
-[forks-url]: https://github.com/KonradSajdak/depesha/network/members
-[stars-shield]: https://img.shields.io/github/stars/KonradSajdak/depesha
-[stars-url]: https://github.com/KonradSajdak/depesha/stargazers
-[issues-shield]: https://img.shields.io/github/issues/KonradSajdak/depesha
-[issues-url]: https://github.com/KonradSajdak/depesha/issues
-[license-shield]: https://img.shields.io/github/license/KonradSajdak/depesha
-[license-url]: https://github.com/KonradSajdak/depesha/blob/main/LICENSE
-
 ## Project analytics
 ![Alt](https://repobeats.axiom.co/api/embed/2b5d159c744e820476f0db506df5c77afe22ccdd.svg "Repobeats analytics image")
 
