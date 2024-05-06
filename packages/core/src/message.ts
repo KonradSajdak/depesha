@@ -42,6 +42,10 @@ export class Message<
     }
   }
 
+  public getBody(): TBody {
+    return this.body
+  }
+
   public getHeader<T extends keyof THeaders>(key: T): THeaders[T] {
     return this.headers[key]
   }
