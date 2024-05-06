@@ -29,12 +29,11 @@ export class BroadcastStream<T> implements StreamProducer<T> {
 
   public consume(): StreamConsumer<T> {
     const consumer = new Stream<T>()
-    this.consumers.push(consumer)
-
     this.buffer.forEach(message => {
-      this.push(message)
+      consumer.push(message)
     })
 
+    this.consumers.push(consumer)
     return consumer
   }
 

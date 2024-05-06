@@ -5,6 +5,17 @@ import {
   ChannelWasClosedException,
 } from "./exception"
 import { autoCommit } from "./auto-commit"
+import { StreamConsumer } from "./stream"
+
+const expectMessages = async <T>(
+  consumer: StreamConsumer<T>,
+  messages: T[],
+) => {
+  const outputStream = messages.map(() => autoCommit(consumer.pull()))
+  return expect(
+    (await Promise.all(outputStream)).map(message => message.value),
+  ).toEqual(messages)
+}
 
 describe("BroadcastSteam", () => {
   test("should consume a stream concurrently", async () => {
@@ -19,15 +30,8 @@ describe("BroadcastSteam", () => {
     inputStream.forEach(message => channel.push(message))
 
     // then
-    const outputStreamA = inputStream.map(() => autoCommit(consumerA.pull()))
-    expect(
-      (await Promise.all(outputStreamA)).map(message => message.value),
-    ).toEqual(inputStream)
-
-    const outputStreamB = inputStream.map(() => autoCommit(consumerB.pull()))
-    expect(
-      (await Promise.all(outputStreamB)).map(message => message.value),
-    ).toEqual(inputStream)
+    await expectMessages(consumerA, inputStream)
+    await expectMessages(consumerB, inputStream)
   })
 
   test("should buffer pushing messages when any consumer registered", async () => {
@@ -40,10 +44,7 @@ describe("BroadcastSteam", () => {
 
     // then
     const consumer = channel.consume()
-    const outputStream = inputStream.map(() => consumer.pull())
-    expect(
-      (await Promise.all(outputStream)).map(message => message.value),
-    ).toEqual(inputStream)
+    await expectMessages(consumer, inputStream)
   })
 
   test("should close the channel", async () => {
@@ -74,5 +75,27 @@ describe("BroadcastSteam", () => {
       buffer: 0,
       consumers: 0,
     })
+  })
+
+  test("should push buffered messages only to the new consumer", async () => {
+    // given
+    const channel = new BroadcastStream<string>()
+    const inputStream1st = ["A", "B", "C", "D"]
+    const inputStream2nd = ["E"]
+
+    // when
+    inputStream1st.forEach(message => channel.push(message))
+
+    // then
+    const consumerA = channel.consume()
+    await expectMessages(consumerA, inputStream1st)
+
+    // when
+    const consumerB = channel.consume()
+    inputStream2nd.forEach(message => channel.push(message))
+
+    // then
+    await expectMessages(consumerB, inputStream1st)
+    await expectMessages(consumerA, inputStream2nd)
   })
 })
