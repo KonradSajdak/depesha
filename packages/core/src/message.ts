@@ -2,7 +2,7 @@
 import { randomUUID } from "./utils/random-uuid"
 import { Transmission } from "./transport"
 
-export interface AvailableMessageHeaders {
+export interface MessageHeaders {
   messageId: string
   channel: string
   partition: number
@@ -11,8 +11,7 @@ export interface AvailableMessageHeaders {
 
 export type MessageRaw<
   TBody = unknown,
-  THeaders extends
-    Partial<AvailableMessageHeaders> = Partial<AvailableMessageHeaders>,
+  THeaders extends Partial<MessageHeaders> = Partial<MessageHeaders>,
 > = {
   body: TBody
   headers?: THeaders
@@ -20,14 +19,12 @@ export type MessageRaw<
 
 export type MessageConstruction<
   TBody = unknown,
-  THeaders extends
-    Partial<AvailableMessageHeaders> = Partial<AvailableMessageHeaders>,
+  THeaders extends Partial<MessageHeaders> = Partial<MessageHeaders>,
 > = MessageRaw<TBody, THeaders> | TBody
 
 export class Message<
   TBody = unknown,
-  THeaders extends
-    Partial<AvailableMessageHeaders> = Partial<AvailableMessageHeaders>,
+  THeaders extends Partial<MessageHeaders> = Partial<MessageHeaders>,
 > {
   private readonly id: string
 
@@ -51,16 +48,14 @@ export class Message<
 
   public static createNew<
     TBody = unknown,
-    THeaders extends
-      Partial<AvailableMessageHeaders> = Partial<AvailableMessageHeaders>,
+    THeaders extends Partial<MessageHeaders> = Partial<MessageHeaders>,
   >(body: TBody, headers?: THeaders): Message<TBody, THeaders> {
     return new Message(body, headers)
   }
 
   public static createFromConstruction<
     TBody = unknown,
-    THeaders extends
-      Partial<AvailableMessageHeaders> = Partial<AvailableMessageHeaders>,
+    THeaders extends Partial<MessageHeaders> = Partial<MessageHeaders>,
   >(message: MessageConstruction<TBody, THeaders>): Message<TBody, THeaders> {
     const body =
       message && typeof message === "object" && "body" in message
