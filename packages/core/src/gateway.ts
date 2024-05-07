@@ -64,7 +64,7 @@ export class Gateway implements Producer, Consumer {
     }
   }
 
-  public send<T>(construction: MessageConstruction<T>): Promise<T | void> {
+  public send<T>(construction: MessageConstruction<T>): Promise<T> {
     const message = Message.createFromConstruction(construction)
     const [producer] = this.getTransportForChannel(
       message.getHeader("channel") ?? "default",
