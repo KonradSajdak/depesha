@@ -23,7 +23,7 @@ export interface ConsumingOptions {
 }
 
 export interface Producer {
-  send<T>(message: MessageConstruction<T>): Promise<T | void>
+  send<T>(message: MessageConstruction<T>): Promise<T>
 }
 
 export interface Receiver {

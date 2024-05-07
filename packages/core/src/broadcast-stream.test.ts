@@ -60,7 +60,7 @@ describe("BroadcastSteam", () => {
 
     // then
     expect(channel.inspect()).toEqual({
-      buffer: 0,
+      buffer: 4,
       consumers: 2,
     })
 
@@ -87,11 +87,11 @@ describe("BroadcastSteam", () => {
     inputStream1st.forEach(message => channel.push(message))
 
     // then
-    const consumerA = channel.consume()
+    const consumerA = channel.consume({ fromBeginning: true })
     await expectMessages(consumerA, inputStream1st)
 
     // when
-    const consumerB = channel.consume()
+    const consumerB = channel.consume({ fromBeginning: true })
     inputStream2nd.forEach(message => channel.push(message))
 
     // then

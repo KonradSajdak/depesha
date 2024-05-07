@@ -1,4 +1,7 @@
-import { BroadcastStream } from "./broadcast-stream"
+import {
+  BroadcastStream,
+  BroadcastStreamConsumerOptions,
+} from "./broadcast-stream"
 import { Stream, StreamConsumer, StreamProducer, isConsumer } from "./stream"
 
 export const pipe = <T>(
@@ -107,6 +110,9 @@ export const fromStream = <T>(stream: Stream<T>) => {
   return new Pipe(stream)
 }
 
-export const fromBroadcastStream = <T>(stream: BroadcastStream<T>) => {
-  return new Pipe(() => stream.consume())
+export const fromBroadcastStream = <T>(
+  stream: BroadcastStream<T>,
+  options?: BroadcastStreamConsumerOptions,
+) => {
+  return new Pipe(() => stream.consume(options))
 }

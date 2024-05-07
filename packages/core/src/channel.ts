@@ -8,6 +8,7 @@ export interface ChannelMessageOptions {
 
 export interface ChannelConsumerOptions {
   groupId?: string
+  fromBeginning?: boolean
 }
 
 export class Channel<T> implements StreamProducer<T> {
@@ -37,7 +38,9 @@ export class Channel<T> implements StreamProducer<T> {
 
     this.groups.set(groupId, group)
 
-    this.rebalanceGroup(groupId)
+    this.rebalanceGroup(groupId, {
+      fromBeginning: options?.fromBeginning ?? false,
+    })
 
     return stream
   }
@@ -46,7 +49,10 @@ export class Channel<T> implements StreamProducer<T> {
     this.groups.forEach((_, groupId) => this.rebalanceGroup(groupId))
   }
 
-  private rebalanceGroup(groupId: PropertyKey) {
+  private rebalanceGroup(
+    groupId: PropertyKey,
+    options?: { fromBeginning?: boolean },
+  ) {
     this.detachGroupFromPartitions(groupId)
 
     const group = this.groups.get(groupId) ?? []
@@ -71,7 +77,7 @@ export class Channel<T> implements StreamProducer<T> {
 
       pipes.push(
         ...partitions.map(partition =>
-          fromBroadcastStream(partition).pipe(consumer),
+          fromBroadcastStream(partition, options).pipe(consumer),
         ),
       )
     }

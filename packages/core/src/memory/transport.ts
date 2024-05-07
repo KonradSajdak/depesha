@@ -51,7 +51,7 @@ export class InMemoryTransport implements Transport<InMemoryProducerOptions> {
 
   public producer(options?: InMemoryProducerOptions): Producer {
     return {
-      send: <T>(construction: MessageConstruction<T>): Promise<T | void> => {
+      send: <T>(construction: MessageConstruction<T>): Promise<T> => {
         const message = Message.createFromConstruction(construction)
         const transmission =
           message.getHeader("transmission") ??
@@ -64,11 +64,13 @@ export class InMemoryTransport implements Transport<InMemoryProducerOptions> {
         const channel = this.channel(message.getHeader("channel"))
 
         if (transmission === Transmission.SYNC) {
-          return channel.push(message, { partition }) as Promise<T>
+          return channel
+            .push(message, { partition })
+            .then(() => message.getBody())
         }
 
         channel.push(message, { partition })
-        return Promise.resolve()
+        return Promise.resolve(message.getBody())
       },
     }
   }
