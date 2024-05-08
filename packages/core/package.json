@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "eslint . && tsc --noemit",
+    "lint:fix": "eslint . --fix && tsc --noemit",
     "format": "prettier --write --write \"**/*.+(js|ts|json)\"",
     "test": "vitest --run",
     "test:mutation": "stryker run --incremental",
