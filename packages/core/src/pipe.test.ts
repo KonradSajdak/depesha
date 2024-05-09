@@ -3,9 +3,12 @@ import { Stream, StreamProducer } from "./stream"
 import { fromBroadcastStream, fromStream, pipe } from "./pipe"
 import { autoCommit } from "./auto-commit"
 import { BroadcastStream } from "./broadcast-stream"
+import { useFakeAbortSignalTimeout } from "./utils/fake-abort-signal-timeout"
 
 describe("Pipe", () => {
   describe("piping mechanism", () => {
+    useFakeAbortSignalTimeout()
+
     beforeEach(() => {
       vi.useFakeTimers()
     })
@@ -33,7 +36,7 @@ describe("Pipe", () => {
       streamA.push("B")
 
       // then
-      const message2 = streamB.pull({ timeout: 1000 })
+      const message2 = streamB.pull({ signal: AbortSignal.timeout(1000) })
       vi.advanceTimersToNextTimer()
 
       await expect(message2).rejects.toThrow()
@@ -51,8 +54,8 @@ describe("Pipe", () => {
 
       // when
       streamA.push("A")
-      const messageA = streamA.pull({ timeout: 5000 })
-      const messageB = streamB.pull({ timeout: 5000 })
+      const messageA = streamA.pull({ signal: AbortSignal.timeout(5000) })
+      const messageB = streamB.pull({ signal: AbortSignal.timeout(5000) })
 
       // then
       await expect(messageA).resolves.toHaveProperty("value", "A")
@@ -82,7 +85,7 @@ describe("Pipe", () => {
       streamA.push("B")
 
       // then
-      const message = streamB.pull({ timeout: 1000 })
+      const message = streamB.pull({ signal: AbortSignal.timeout(1000) })
       vi.advanceTimersToNextTimer()
 
       await expect(message).rejects.toThrow()

@@ -2,7 +2,6 @@ import { Deferred } from "./deferred"
 import {
   ChannelClosedAlreadyException,
   ChannelWasClosedException,
-  PullingTimeoutException,
 } from "./exception"
 import { LinkedList, Locked } from "./linked-list"
 
@@ -19,7 +18,7 @@ export interface PendingMessage<T> {
 }
 
 export interface PullingOptions {
-  timeout?: number
+  signal?: AbortSignal
 }
 
 export type StreamProducer<T> = {
@@ -117,20 +116,15 @@ export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
       throw new ChannelClosedAlreadyException()
     }
 
-    const timeout = options?.timeout ?? null
     const next = this.stream.shiftWithLock()
 
     if (!next) {
-      const defer = new Deferred<PendingMessage<T>>()
+      const defer = new Deferred<PendingMessage<T>>({ signal: options?.signal })
       this.pending.push(defer)
 
-      if (timeout === null) return defer.promise
-
-      const cancelTimeout = setTimeout(() => {
-        defer.reject(new PullingTimeoutException(timeout))
-      }, timeout)
-
-      return defer.promise.finally(() => clearTimeout(cancelTimeout))
+      return defer.promise /* .finally(() => {
+        this.pending.splice(this.pending.indexOf(defer), 1)
+      }) */
     }
 
     const { value, defer } = next.value

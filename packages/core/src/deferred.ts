@@ -3,14 +3,22 @@ export class Deferred<T> {
   private resolvePromise!: (value: T | PromiseLike<T>) => Promise<T>
   private rejectPromise!: (reason?: unknown) => void
 
-  public constructor() {
+  public constructor(options?: { signal?: AbortSignal }) {
     this.promiseInstance = new Promise<T>((resolve, reject) => {
+      if (options?.signal?.aborted) {
+        reject(options.signal.reason)
+      }
+
       this.resolvePromise = (value: T | PromiseLike<T>) => {
         resolve(value)
         return this.promiseInstance
       }
 
       this.rejectPromise = (reason?: unknown) => reject(reason)
+
+      options?.signal?.addEventListener("abort", () => {
+        reject(options.signal?.reason)
+      })
     })
   }
 

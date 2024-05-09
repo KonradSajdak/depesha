@@ -4,8 +4,11 @@ import {
   ChannelWasClosedException,
 } from "./exception"
 import { Stream, StreamProducer, isConsumer, isProducer } from "./stream"
+import { useFakeAbortSignalTimeout } from "./utils/fake-abort-signal-timeout"
 
 describe("Stream", () => {
+  useFakeAbortSignalTimeout()
+
   beforeEach(() => {
     vi.useFakeTimers()
   })
@@ -60,11 +63,11 @@ describe("Stream", () => {
     const stream = new Stream<string>()
 
     // when
-    const result = stream.pull({ timeout: 10000 })
+    const result = stream.pull({ signal: AbortSignal.timeout(10000) })
     vi.advanceTimersByTime(10001)
 
     // then
-    await expect(result).rejects.toThrow("Pulling timeout of 10000ms exceeded.")
+    await expect(result).rejects.toThrow("TimeoutError")
   })
 
   test("should pull message before timeout", async () => {
@@ -72,7 +75,7 @@ describe("Stream", () => {
     const stream = new Stream<string>()
 
     // when
-    const result = stream.pull({ timeout: 10000 })
+    const result = stream.pull({ signal: AbortSignal.timeout(10000) })
     vi.advanceTimersByTime(5000)
     stream.push("test")
 
