@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "check-types": "tsc --noemit",
     "lint": "eslint . && tsc --noemit",
     "lint:fix": "eslint . --fix && tsc --noemit",
     "format": "prettier --write --write \"**/*.+(js|ts|json)\"",

@@ -6,6 +6,7 @@
     "test": "vitest --run",
     "test:mutation": "pnpm -r test:mutation",
     "test:watch": "vitest",
+    "check-types": "pnpm -r check-types",
     "lint": "pnpm -r lint",
     "lint:fix": "pnpm -r lint:fix",
     "format": "pnpm -r format",
