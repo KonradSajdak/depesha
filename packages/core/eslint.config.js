@@ -4,6 +4,7 @@ import eslint from "@eslint/js"
 import tseslint from "typescript-eslint"
 import prettier from "eslint-config-prettier"
 import unusedImports from "eslint-plugin-unused-imports"
+import promise from "eslint-plugin-promise"
 
 export default [
   eslint.configs.recommended,
@@ -17,7 +18,7 @@ export default [
   },
   {
     files: ["src/**/*.ts", "src/**/*.js", "tests/**/*.ts", "tests/**/*.js"],
-    plugins: { unusedImports },
+    plugins: { unusedImports, promise },
     rules: {
       indent: ["error", 2],
       "linebreak-style": ["error", "unix"],

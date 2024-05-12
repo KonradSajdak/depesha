@@ -23,6 +23,7 @@
     "@stryker-mutator/vitest-runner": "^8.2.6",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-promise": "^6.1.1",
     "eslint-plugin-unused-imports": "^3.1.0",
     "prettier": "^3.2.5",
     "typescript": "^5.4.5",
