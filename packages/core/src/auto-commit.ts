@@ -1,8 +1,5 @@
 import { PendingMessage } from "./stream"
 
-export const autoCommit = <T>(pull: Promise<PendingMessage<T>>) => {
-  return pull.then(message => {
-    message.commit()
-    return message
-  })
+export const autoCommit = <T>(pull: Promise<PendingMessage<T>>): Promise<T> => {
+  return pull.then(message => message.commit())
 }
