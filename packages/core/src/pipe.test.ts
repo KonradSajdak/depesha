@@ -1,9 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import { Stream, StreamProducer } from "./stream"
-import { fromBroadcastStream, fromStream, pipe } from "./pipe"
-import { autoCommit } from "./auto-commit"
-import { BroadcastStream } from "./broadcast-stream"
+import { fromStream, pipe } from "./pipe"
 import { useFakeAbortSignalTimeout } from "./utils/fake-abort-signal-timeout"
+import { expectMessages, expectMessagesFrom } from "./utils/expect-messages"
 
 describe("Pipe", () => {
   describe("piping mechanism", () => {
@@ -19,8 +18,8 @@ describe("Pipe", () => {
 
     test("should destroy from a stream", async () => {
       // given
-      const streamA = new Stream<string>()
-      const streamB = new Stream<string>()
+      const streamA = Stream.create<string>()
+      const streamB = Stream.create<string>()
 
       const destroy = pipe(streamA, streamB)
 
@@ -44,13 +43,13 @@ describe("Pipe", () => {
 
     test("should destroy and rollback pushed messages", async () => {
       // given
-      const streamA = new Stream<string>()
-      const streamB = new Stream<string>()
+      const streamA = Stream.create<string>()
+      const streamB = Stream.create<string>()
 
       const destroy = pipe(streamA, streamB)
 
       // then
-      destroy()
+      await destroy()
 
       // when
       streamA.push("A")
@@ -69,8 +68,8 @@ describe("Pipe", () => {
 
     test("should destroy after piping message", async () => {
       // given
-      const streamA = new Stream<string>()
-      const streamB = new Stream<string>()
+      const streamA = Stream.create<string>()
+      const streamB = Stream.create<string>()
 
       const destroy = pipe(streamA, streamB)
 
@@ -93,9 +92,9 @@ describe("Pipe", () => {
 
     test("should reject message when throwing error", async () => {
       // given
-      const streamA = new Stream<string>()
-      const streamB = new Stream<string>()
-      const streamC = new Stream<string>()
+      const streamA = Stream.create<string>()
+      const streamB = Stream.create<string>()
+      const streamC = Stream.create<string>()
       const rejecter = new (class implements StreamProducer<string> {
         public async push(): Promise<string> {
           throw new Error("Error")
@@ -114,28 +113,24 @@ describe("Pipe", () => {
   describe("Stream", () => {
     test("should pipe messages from one stream to another", async () => {
       // given
-      const streamA = new Stream<string>()
-      const streamB = new Stream<string>()
-      const sinkA = fromStream(streamA)
+      const streamA = Stream.create<string>()
+      const streamB = Stream.create<string>()
 
       // when
-      sinkA.pipe(streamB)
+      fromStream(streamA).pipe(streamB)
 
       const messages = ["A", "B", "C", "D"]
       messages.forEach(message => streamA.push(message))
 
       // then
-      const outputStream = messages.map(() => autoCommit(streamB.pull()))
-      expect(
-        (await Promise.all(outputStream)).map(message => message.value),
-      ).toEqual(messages)
+      await expectMessagesFrom(streamB, messages)
     })
 
     test("should pipe messages from one stream to another sequentially", async () => {
       // given
-      const streamA = new Stream<string>()
-      const streamB = new Stream<string>()
-      const streamC = new Stream<string>()
+      const streamA = Stream.create<string>()
+      const streamB = Stream.create<string>()
+      const streamC = Stream.create<string>()
 
       const sinkA = fromStream(streamA)
 
@@ -147,21 +142,16 @@ describe("Pipe", () => {
       messages.forEach(message => streamA.push(message))
 
       // then
-      const outputStream = [
-        autoCommit(streamB.pull()),
-        autoCommit(streamC.pull()),
-        autoCommit(streamB.pull()),
-        autoCommit(streamC.pull()),
-      ]
-      expect(
-        (await Promise.all(outputStream)).map(message => message.value),
-      ).toEqual(messages)
+      expectMessages(
+        [streamB.pull(), streamC.pull(), streamB.pull(), streamC.pull()],
+        messages,
+      )
     })
 
     test("should unpipe a stream", async () => {
       // given
-      const streamA = new Stream<string>()
-      const streamB = new Stream<string>()
+      const streamA = Stream.create<string>()
+      const streamB = Stream.create<string>()
       const sinkA = fromStream(streamA)
 
       // when
@@ -170,13 +160,10 @@ describe("Pipe", () => {
       messages.forEach(message => streamA.push(message))
 
       // then
-      const outputStream = messages.map(() => autoCommit(streamB.pull()))
-      expect(
-        (await Promise.all(outputStream)).map(message => message.value),
-      ).toEqual(messages)
+      await expectMessagesFrom(streamB, messages)
 
       // when
-      sinkA.unpipe(streamB)
+      await sinkA.unpipe(streamB)
       streamA.push("C")
       streamB.push("D")
 
@@ -188,9 +175,9 @@ describe("Pipe", () => {
 
     test("should unpipe all streams", async () => {
       // given
-      const streamA = new Stream<string>()
-      const streamB = new Stream<string>()
-      const streamC = new Stream<string>()
+      const streamA = Stream.create<string>()
+      const streamB = Stream.create<string>()
+      const streamC = Stream.create<string>()
 
       const sinkA = fromStream(streamA)
 
@@ -212,7 +199,7 @@ describe("Pipe", () => {
       ).toEqual(["B"])
 
       // when
-      sinkA.unpipeAll()
+      await sinkA.unpipeAll()
       streamA.push("C")
       streamB.push("D")
       streamC.push("E")
@@ -222,88 +209,6 @@ describe("Pipe", () => {
       const messageC = await streamC.pull()
       expect(messageB.value).toBe("D")
       expect(messageC.value).toBe("E")
-      expect(sinkA.totalPipes()).toBe(0)
-    })
-  })
-
-  describe("BroadcastStream", () => {
-    test("should pipe messages from one stream to another", async () => {
-      // given
-      const streamA = new BroadcastStream<string>()
-      const streamB = new BroadcastStream<string>()
-
-      const consumer = streamB.consume()
-
-      // when
-      // streamA.pipe(streamB)
-      fromBroadcastStream(streamA).pipe(streamB)
-
-      const messages = ["A", "B", "C", "D"]
-      messages.forEach(message => streamA.push(message))
-
-      // then
-      const outputStream = messages.map(() => autoCommit(consumer.pull()))
-      expect(
-        (await Promise.all(outputStream)).map(message => message.value),
-      ).toEqual(messages)
-    })
-
-    test("should pipe messages from one stream to another concurrently", async () => {
-      // given
-      const streamA = new BroadcastStream<string>()
-      const streamB = new BroadcastStream<string>()
-      const streamC = new BroadcastStream<string>()
-
-      const consumerA = streamA.consume()
-      const consumerB = streamB.consume()
-
-      // when
-      const sinkC = fromBroadcastStream(streamC)
-      sinkC.pipe(streamA)
-      sinkC.pipe(streamB)
-
-      const messages = ["A", "B", "C", "D"]
-      messages.forEach(message => streamC.push(message))
-
-      // then
-      const outputStreamA = messages.map(() => autoCommit(consumerA.pull()))
-      expect(
-        (await Promise.all(outputStreamA)).map(message => message.value),
-      ).toEqual(messages)
-
-      const outputStreamB = messages.map(() => autoCommit(consumerB.pull()))
-      expect(
-        (await Promise.all(outputStreamB)).map(message => message.value),
-      ).toEqual(messages)
-    })
-
-    test("should unpipe a stream", async () => {
-      // given
-      const streamA = new BroadcastStream<string>()
-      const streamB = new BroadcastStream<string>()
-
-      const consumerB = streamB.consume()
-      const sinkA = fromBroadcastStream(streamA)
-
-      // when
-      sinkA.pipe(streamB)
-      const messages = ["A", "B"]
-      messages.forEach(message => streamA.push(message))
-
-      // then
-      const outputStream = messages.map(() => autoCommit(consumerB.pull()))
-      expect(
-        (await Promise.all(outputStream)).map(message => message.value),
-      ).toEqual(messages)
-
-      // when
-      sinkA.unpipe(streamB)
-      streamA.push("C")
-      streamB.push("D")
-
-      // then
-      const message = await consumerB.pull()
-      expect(message.value).toBe("D")
       expect(sinkA.totalPipes()).toBe(0)
     })
   })

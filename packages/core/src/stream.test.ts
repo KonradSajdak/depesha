@@ -19,7 +19,7 @@ describe("Stream", () => {
 
   test("should push a message async", async () => {
     // given
-    const stream = new Stream<string>()
+    const stream = Stream.create<string>()
 
     // when
     stream.push("test")
@@ -31,7 +31,7 @@ describe("Stream", () => {
 
   test("should push a message sync", async () => {
     // given
-    const stream = new Stream<string>()
+    const stream = Stream.create<string>()
 
     // when
     const pushing = stream.push("test")
@@ -46,7 +46,7 @@ describe("Stream", () => {
 
   test("should pull a message", async () => {
     // given
-    const stream = new Stream<string>()
+    const stream = Stream.create<string>()
 
     // then
     const result = stream.pull()
@@ -60,7 +60,7 @@ describe("Stream", () => {
 
   test("should reject timeout when pulling message", async () => {
     // given
-    const stream = new Stream<string>()
+    const stream = Stream.create<string>()
 
     // when
     const result = stream.pull({ signal: AbortSignal.timeout(10000) })
@@ -72,7 +72,7 @@ describe("Stream", () => {
 
   test("should pull message before timeout", async () => {
     // given
-    const stream = new Stream<string>()
+    const stream = Stream.create<string>()
 
     // when
     const result = stream.pull({ signal: AbortSignal.timeout(10000) })
@@ -85,7 +85,7 @@ describe("Stream", () => {
 
   test("should pull a stream after pushing", async () => {
     // given
-    const stream = new Stream<string>()
+    const stream = Stream.create<string>()
     const inputStream = ["A", "B", "C", "D"]
 
     // when
@@ -100,7 +100,7 @@ describe("Stream", () => {
 
   test("should wait for stream when pulling before push", async () => {
     // given
-    const stream = new Stream<string>()
+    const stream = Stream.create<string>()
     const inputStream = ["A", "B", "C", "D"]
 
     // when
@@ -115,7 +115,7 @@ describe("Stream", () => {
 
   test("should close the stream", async () => {
     // given
-    const stream = new Stream<string>()
+    const stream = Stream.create<string>()
     const inputStream = ["A", "B", "C", "D"]
 
     // when
@@ -134,7 +134,7 @@ describe("Stream", () => {
 
   test("should disable pushing and pulling after closing", async () => {
     // given
-    const stream = new Stream<string>()
+    const stream = Stream.create<string>()
 
     // when
     await stream.close()
@@ -148,7 +148,7 @@ describe("Stream", () => {
 
   test("should reject all pending pulls after closing", async () => {
     // given
-    const stream = new Stream<string>()
+    const stream = Stream.create<string>()
 
     // when
     const pull = stream.pull()
@@ -160,7 +160,7 @@ describe("Stream", () => {
 
   test("should reject all pending sync pushes after closing", async () => {
     // given
-    const stream = new Stream<string>()
+    const stream = Stream.create<string>()
 
     // when
     const push = stream.push("test")
@@ -172,7 +172,7 @@ describe("Stream", () => {
 
   test("should manually reject message", async () => {
     // given
-    const stream = new Stream<string>()
+    const stream = Stream.create<string>()
     const push = stream.push("test")
 
     // when
@@ -185,7 +185,7 @@ describe("Stream", () => {
 
   test("should rollback a message and pull it again", async () => {
     // given
-    const stream = new Stream<string>()
+    const stream = Stream.create<string>()
     ;["A", "B", "C", "D"].forEach(message => stream.push(message))
 
     // when
@@ -219,7 +219,7 @@ describe("Stream", () => {
 
   test("should push rollbacked message to pending", async () => {
     // given
-    const stream = new Stream<string>()
+    const stream = Stream.create<string>()
     const pendingA = stream.pull()
     const pendingB = stream.pull()
 
@@ -240,7 +240,7 @@ describe("Stream", () => {
 
   test("should only commit or rollback once", async () => {
     // given
-    const stream = new Stream<string>()
+    const stream = Stream.create<string>()
     ;["A", "B", "C", "D"].forEach(message => stream.push(message))
 
     // when
@@ -262,7 +262,7 @@ describe("Stream", () => {
 
   test("should pull only not locked message", async () => {
     // given
-    const stream = new Stream<string>()
+    const stream = Stream.create<string>()
     stream.push("A")
 
     const firstPulling = stream.pull()
@@ -281,7 +281,7 @@ describe("Stream", () => {
 
 describe("isConsumer", () => {
   test.each([
-    [new Stream<string>(), true],
+    [Stream.create<string>(), true],
     [
       new (class implements StreamProducer<string> {
         push(value: string): Promise<string> {
@@ -304,7 +304,7 @@ describe("isConsumer", () => {
 
 describe("isProducer", () => {
   test.each([
-    [new Stream<string>(), true],
+    [Stream.create<string>(), true],
     [
       new (class implements StreamProducer<string> {
         push(value: string): Promise<string> {

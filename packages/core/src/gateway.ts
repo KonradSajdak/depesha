@@ -86,7 +86,7 @@ export class Gateway implements Producer, Consumer {
   public subscribe<T>(
     callback: (message: MessageRaw<T>) => void,
     options?: ConsumingOptions,
-  ): () => void {
+  ): () => Promise<void> {
     const [, consumer] = this.getTransportForChannel(
       options?.channel ?? "default",
     )

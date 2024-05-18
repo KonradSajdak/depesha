@@ -234,6 +234,10 @@ export class LinkedList<T> {
     return linkedList
   }
 
+  public clone() {
+    return LinkedList.fromArray(this.toArray())
+  }
+
   public static fromArray<T>(array: T[]) {
     const linkedList = new LinkedList<T>()
     array.forEach(value => linkedList.append(value))

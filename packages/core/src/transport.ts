@@ -9,17 +9,21 @@ export enum Transmission {
 export type BaseTransportOptions = Record<PropertyKey, unknown>
 
 export interface ProducerOptions {
+  defaultChannel?: string
+  defaultPartition?: number
   defaultTransmission?: Transmission
 }
 
 export interface ConsumerOptions {
   defaultChannel?: string
   defaultGroupId?: string
+  defaultFromBeginning?: boolean
 }
 
 export interface ConsumingOptions {
   channel?: string
   groupId?: string
+  fromBeginning?: boolean
 }
 
 export interface Producer {
@@ -34,7 +38,7 @@ export interface Subscriber {
   subscribe<T>(
     callback: (message: MessageRaw<T>) => void,
     options?: ConsumingOptions,
-  ): () => void
+  ): () => Promise<void>
 }
 
 export interface Consumer extends Receiver, Subscriber {}

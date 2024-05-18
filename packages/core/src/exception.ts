@@ -8,3 +8,5 @@ export class PullingTimeoutException extends DepeshaException {
     super(`Pulling timeout of ${timeout}ms exceeded.`)
   }
 }
+
+export class PipeDestroyedException extends DepeshaException {}

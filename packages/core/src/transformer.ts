@@ -8,7 +8,7 @@ import {
 export class Transformer<T, O = T>
   implements StreamProducer<T>, StreamConsumer<O>
 {
-  private readonly stream = new Stream<O>()
+  private readonly stream = Stream.create<O>()
 
   public constructor(private readonly mapper: (value: T) => O) {}
 

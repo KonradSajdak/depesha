@@ -53,16 +53,49 @@ export const isConsumer = (
   )
 }
 
+class StreamController {
+  private paused: boolean = false
+  private pauseResumed: Deferred<void> = new Deferred()
+
+  public pause() {
+    if (this.paused) return
+    this.paused = true
+  }
+
+  public isPaused() {
+    return this.paused
+  }
+
+  public resume() {
+    if (!this.paused) return
+
+    this.paused = false
+    this.pauseResumed.resolve()
+    this.pauseResumed = new Deferred()
+  }
+
+  public async wait() {
+    if (!this.paused) {
+      return
+    }
+
+    return this.pauseResumed.promise
+  }
+
+  public async whenResume() {
+    return this.wait()
+  }
+}
+
 export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
   private closed: boolean = false
+  private flow = new StreamController()
 
-  public readonly stream: LinkedList<PushedMessage<T>>
-  public readonly pending: Deferred<PendingMessage<T>>[]
+  public readonly pending: Deferred<PendingMessage<T>>[] = []
 
-  public constructor() {
-    this.stream = new LinkedList()
-    this.pending = []
-  }
+  private constructor(
+    public readonly stream: LinkedList<PushedMessage<T>> = new LinkedList(),
+  ) {}
 
   private createMessage(
     value: T,
@@ -97,6 +130,17 @@ export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
       throw new ChannelClosedAlreadyException()
     }
 
+    if (this.flow.isPaused()) {
+      const defer = new Deferred<T>()
+
+      this.flow
+        .whenResume()
+        .then(() => this.push(value))
+        .then(value => defer.resolve(value))
+
+      return defer.promise
+    }
+
     const defer = new Deferred<T>()
 
     const pending = this.pending.shift()
@@ -116,19 +160,47 @@ export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
       throw new ChannelClosedAlreadyException()
     }
 
+    if (this.flow.isPaused()) {
+      const defer = new Deferred<PendingMessage<T>>({ signal: options?.signal })
+
+      this.flow
+        .whenResume()
+        .then(() => this.pull(options))
+        .then(value => defer.resolve(value))
+
+      return defer.promise
+    }
+
     const next = this.stream.shiftWithLock()
 
     if (!next) {
       const defer = new Deferred<PendingMessage<T>>({ signal: options?.signal })
       this.pending.push(defer)
 
-      return defer.promise /* .finally(() => {
+      return defer.promise.catch(() => {
         this.pending.splice(this.pending.indexOf(defer), 1)
-      }) */
+        return defer.promise
+      })
     }
 
     const { value, defer } = next.value
     return this.createMessage(value, next, defer)
+  }
+
+  public clone(): Stream<T> {
+    return new Stream(this.stream.clone())
+  }
+
+  public pause() {
+    return this.flow.pause()
+  }
+
+  public resume() {
+    return this.flow.resume()
+  }
+
+  public isPaused() {
+    return this.flow.isPaused()
   }
 
   public async close() {
@@ -157,5 +229,9 @@ export class Stream<T> implements StreamProducer<T>, StreamConsumer<T> {
 
   public isClosed() {
     return this.closed
+  }
+
+  public static create<T>(): Stream<T> {
+    return new Stream()
   }
 }

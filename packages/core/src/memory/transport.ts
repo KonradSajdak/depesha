@@ -8,7 +8,7 @@ import {
   Transmission,
   Transport,
 } from "../transport"
-import { Channel } from "../channel"
+import { Topic } from "../topic"
 import { PendingMessage, StreamConsumer } from "../stream"
 import { Transformer } from "../transformer"
 import { Subscriber } from "../subscriber"
@@ -30,20 +30,16 @@ export class InMemoryTransport implements Transport<InMemoryProducerOptions> {
   private readonly defaultProducerOptions: InMemoryProducerOptions
   private readonly defaultConsumerOptions: ConsumerOptions
 
-  private readonly channels: Map<PropertyKey, Channel<Message>> = new Map([
-    [DEFAULT_CHANNEL, new Channel<Message>()],
-  ])
+  private readonly channels: Map<PropertyKey, Topic<Message>> = new Map()
 
   public constructor(options?: InMemoryOptions) {
     this.defaultProducerOptions = options?.producer ?? {}
     this.defaultConsumerOptions = options?.consumer ?? {}
   }
 
-  private channel(channel?: string) {
-    if (!channel) return this.channels.get(DEFAULT_CHANNEL)!
-
+  private channel(channel: string = DEFAULT_CHANNEL) {
     if (!this.channels.has(channel)) {
-      this.channels.set(channel, new Channel<Message>())
+      this.channels.set(channel, new Topic<Message>())
     }
 
     return this.channels.get(channel)!
@@ -59,9 +55,15 @@ export class InMemoryTransport implements Transport<InMemoryProducerOptions> {
           this.defaultProducerOptions?.defaultTransmission ??
           Transmission.SYNC
 
-        const partition = message.getHeader("partition")
+        const channelName =
+          message.getHeader("channel") ??
+          this.defaultProducerOptions?.defaultChannel
 
-        const channel = this.channel(message.getHeader("channel"))
+        const partition =
+          message.getHeader("partition") ??
+          this.defaultProducerOptions?.defaultPartition
+
+        const channel = this.channel(channelName)
 
         if (transmission === Transmission.SYNC) {
           return channel
@@ -75,16 +77,25 @@ export class InMemoryTransport implements Transport<InMemoryProducerOptions> {
     }
   }
 
-  public consumer(
-    consumerOptions: ConsumerOptions = this.defaultConsumerOptions,
-  ): Consumer {
+  public consumer(consumerOptions?: ConsumerOptions): Consumer {
     const consumers: Map<PropertyKey, StreamConsumer<Message>> = new Map()
 
     const consumeFrom = (options?: ConsumingOptions) => {
       const channel =
-        options?.channel ?? consumerOptions?.defaultChannel ?? DEFAULT_CHANNEL
+        options?.channel ??
+        consumerOptions?.defaultChannel ??
+        this.defaultConsumerOptions?.defaultChannel ??
+        DEFAULT_CHANNEL
       const groupId =
-        options?.groupId ?? consumerOptions?.defaultGroupId ?? DEFAULT_GROUP
+        options?.groupId ??
+        consumerOptions?.defaultGroupId ??
+        this.defaultConsumerOptions?.defaultGroupId ??
+        DEFAULT_GROUP
+      const fromBeginning =
+        options?.fromBeginning ??
+        consumerOptions?.defaultFromBeginning ??
+        this.defaultConsumerOptions?.defaultFromBeginning ??
+        false
 
       const consumingKey = `${channel}:${groupId}`
 
@@ -97,7 +108,8 @@ export class InMemoryTransport implements Transport<InMemoryProducerOptions> {
 
     return {
       receive: async <T>(options?: ConsumingOptions) => {
-        return (await consumeFrom(options).pull()) as PendingMessage<Message<T>>
+        const consumer = consumeFrom(options)
+        return (await consumer.pull()) as PendingMessage<Message<T>>
       },
 
       subscribe: <T>(

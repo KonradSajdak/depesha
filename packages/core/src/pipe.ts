@@ -1,28 +1,46 @@
-import {
-  BroadcastStream,
-  BroadcastStreamConsumerOptions,
-} from "./broadcast-stream"
+import { PipeDestroyedException } from "./exception"
 import { Stream, StreamConsumer, StreamProducer, isConsumer } from "./stream"
+import { randomUUID } from "./utils/random-uuid"
+
+export type PipeDestroyer = () => Promise<void>
 
 export const pipe = <T>(
   source: StreamConsumer<T>,
   target: StreamProducer<T>,
-): (() => void) => {
-  let isDestroyed = false
-  const destroy = () => (isDestroyed = true)
+): PipeDestroyer => {
+  const controller = new AbortController()
+  const signal = controller.signal
+
+  const id = randomUUID()
+
+  const destroy = () => {
+    return new Promise<void>(resolve => {
+      signal.addEventListener("abort", () => resolve())
+      controller.abort(new PipeDestroyedException())
+    })
+  }
 
   const run = async () => {
-    while (!source.isClosed() && !isDestroyed) {
-      const message = await source.pull()
+    while (!source.isClosed() && !signal.aborted) {
+      const message = await source.pull({ signal }).catch((error: unknown) => {
+        if (!(error instanceof PipeDestroyedException)) {
+          throw error
+        }
+      })
 
-      if (isDestroyed) {
+      if (!message) return
+      if (signal.aborted) {
         return message.rollback()
       }
 
       await target
         .push(message.value)
-        .then(() => message.commit())
-        .catch(reason => message.reject(reason))
+        .then(() => {
+          return message.commit()
+        })
+        .catch((reason: unknown) => {
+          return message.reject(reason)
+        })
     }
   }
 
@@ -32,15 +50,15 @@ export const pipe = <T>(
 }
 
 export class Flow {
-  public constructor(private readonly destroyer: () => void) {}
+  public constructor(private readonly destroyer: PipeDestroyer) {}
 
-  destroy() {
-    this.destroyer()
+  public async destroy() {
+    return await this.destroyer()
   }
 }
 
 export class Pipe<T> {
-  private pipes: Map<StreamProducer<T>, () => void> = new Map()
+  private pipes: Map<StreamProducer<T>, PipeDestroyer> = new Map()
 
   public constructor(
     private readonly streamOrFactory:
@@ -69,16 +87,18 @@ export class Pipe<T> {
     return new Flow(() => this.unpipe(producerOrStream)) as R
   }
 
-  unpipe(stream: StreamProducer<T>): void {
+  async unpipe(stream: StreamProducer<T>): Promise<void> {
     const unsubscribe = this.pipes.get(stream)
-    if (!unsubscribe) return
+    if (!unsubscribe) return Promise.resolve()
 
-    unsubscribe()
+    await unsubscribe()
     this.pipes.delete(stream)
   }
 
-  unpipeAll(): void {
-    this.pipes.forEach(unsubscribe => unsubscribe())
+  async unpipeAll(): Promise<void> {
+    await Promise.all(
+      Array.from(this.pipes.values()).map(unsubscribe => unsubscribe()),
+    )
     this.pipes.clear()
   }
 
@@ -90,9 +110,9 @@ export class Pipe<T> {
     return this.pipes.size
   }
 
-  destroy() {
-    this.unpipeAll()
-    this.previousPipe?.destroy()
+  async destroy(): Promise<void> {
+    await this.unpipeAll()
+    await this.previousPipe?.destroy()
   }
 
   consume(): StreamConsumer<T> {
@@ -108,11 +128,4 @@ export const fromConsumer = <T>(consumer: StreamConsumer<T>) => {
 
 export const fromStream = <T>(stream: Stream<T>) => {
   return new Pipe(stream)
-}
-
-export const fromBroadcastStream = <T>(
-  stream: BroadcastStream<T>,
-  options?: BroadcastStreamConsumerOptions,
-) => {
-  return new Pipe(() => stream.consume(options))
 }
