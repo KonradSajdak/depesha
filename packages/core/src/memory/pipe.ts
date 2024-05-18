@@ -1,6 +1,6 @@
-import { PipeDestroyedException } from "./exception"
+import { PipeDestroyedException } from "../exception"
 import { Stream, StreamConsumer, StreamProducer, isConsumer } from "./stream"
-import { randomUUID } from "./utils/random-uuid"
+import { randomUUID } from "../utils/random-uuid"
 
 export type PipeDestroyer = () => Promise<void>
 

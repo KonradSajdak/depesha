@@ -8,11 +8,11 @@ import {
   Transmission,
   Transport,
 } from "../transport"
-import { Topic } from "../topic"
-import { PendingMessage, StreamConsumer } from "../stream"
-import { Transformer } from "../transformer"
-import { Subscriber } from "../subscriber"
-import { fromConsumer } from "../pipe"
+import { Topic } from "./topic"
+import { PendingMessage, StreamConsumer } from "./stream"
+import { Mapper } from "./transformers/mapper"
+import { Subscriber } from "./transformers/subscriber"
+import { fromConsumer } from "./pipe"
 
 const DEFAULT_CHANNEL = "default-channel"
 const DEFAULT_GROUP = "default-group"
@@ -91,11 +91,6 @@ export class InMemoryTransport implements Transport<InMemoryProducerOptions> {
         consumerOptions?.defaultGroupId ??
         this.defaultConsumerOptions?.defaultGroupId ??
         DEFAULT_GROUP
-      const fromBeginning =
-        options?.fromBeginning ??
-        consumerOptions?.defaultFromBeginning ??
-        this.defaultConsumerOptions?.defaultFromBeginning ??
-        false
 
       const consumingKey = `${channel}:${groupId}`
 
@@ -119,7 +114,7 @@ export class InMemoryTransport implements Transport<InMemoryProducerOptions> {
         const consumer = consumeFrom(options)
 
         const flow = fromConsumer(consumer)
-          .pipe(new Transformer((message: Message) => message.toRaw()))
+          .pipe(new Mapper((message: Message) => message.toRaw()))
           .pipe(new Subscriber(callback))
 
         return () => flow.destroy()

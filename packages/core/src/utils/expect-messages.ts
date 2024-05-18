@@ -1,6 +1,6 @@
 import { expect } from "vitest"
-import { autoCommit } from "../auto-commit"
-import { PendingMessage, StreamConsumer } from "../stream"
+import { autoCommit } from "./auto-commit"
+import { PendingMessage, StreamConsumer } from "../memory/stream"
 
 export const expectMessagesFrom = async <T, R = T>(
   consumer: StreamConsumer<T>,

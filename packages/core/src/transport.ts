@@ -1,5 +1,5 @@
 import { Message, MessageConstruction, MessageRaw } from "./message"
-import { PendingMessage } from "./stream"
+import { PendingMessage } from "./memory/stream"
 
 export enum Transmission {
   SYNC = "sync",
@@ -17,13 +17,11 @@ export interface ProducerOptions {
 export interface ConsumerOptions {
   defaultChannel?: string
   defaultGroupId?: string
-  defaultFromBeginning?: boolean
 }
 
 export interface ConsumingOptions {
   channel?: string
   groupId?: string
-  fromBeginning?: boolean
 }
 
 export interface Producer {

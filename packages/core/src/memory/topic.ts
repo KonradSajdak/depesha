@@ -1,7 +1,7 @@
-import { Deferred } from "./deferred"
+import { Deferred } from "../utils/deferred"
 import { PipeDestroyer, pipe } from "./pipe"
 import { Stream, StreamConsumer, StreamProducer } from "./stream"
-import { MaybePromise } from "./utils/types"
+import { MaybePromise } from "../utils/types"
 
 export interface TopicMessageOptions {
   partition?: number

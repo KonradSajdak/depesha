@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import { Stream, StreamProducer } from "./stream"
 import { fromStream, pipe } from "./pipe"
-import { useFakeAbortSignalTimeout } from "./utils/fake-abort-signal-timeout"
-import { expectMessages, expectMessagesFrom } from "./utils/expect-messages"
+import { useFakeAbortSignalTimeout } from "../utils/fake-abort-signal-timeout"
+import { expectMessages, expectMessagesFrom } from "../utils/expect-messages"
 
 describe("Pipe", () => {
   describe("piping mechanism", () => {

@@ -5,7 +5,7 @@ import {
   toGatewayConfiguration,
 } from "./gateway-configuration"
 import { Message, MessageConstruction, MessageRaw } from "./message"
-import { PendingMessage } from "./stream"
+import { PendingMessage } from "./memory/stream"
 import { Consumer, ConsumingOptions, Producer, Transport } from "./transport"
 
 export type ChannelName = string

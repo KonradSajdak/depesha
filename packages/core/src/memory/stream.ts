@@ -1,8 +1,8 @@
-import { Deferred } from "./deferred"
+import { Deferred } from "../utils/deferred"
 import {
   ChannelClosedAlreadyException,
   ChannelWasClosedException,
-} from "./exception"
+} from "../exception"
 import { LinkedList, Locked } from "./linked-list"
 
 export interface PushedMessage<T> {

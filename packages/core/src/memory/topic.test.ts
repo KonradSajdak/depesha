@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
 import { Topic, calculatePartitionConsumer } from "./topic"
-import { expectMessagesFrom } from "./utils/expect-messages"
+import { expectMessagesFrom } from "../utils/expect-messages"
 
 describe("Partitioning messages", () => {
   test.each([

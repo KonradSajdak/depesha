@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest"
 import { Transmission, Transport, Producer } from "../transport"
 import { withMemoryTransport } from "."
 import { Message, MessageHeaders } from "../message"
-import { PendingMessage } from "../stream"
+import { PendingMessage } from "./stream"
 import { expectMessages as expectRawMessages } from "../utils/expect-messages"
 
 const sendAllUsing = <T>(

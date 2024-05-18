@@ -3,11 +3,9 @@ import {
   Stream,
   StreamConsumer,
   StreamProducer,
-} from "./stream"
+} from "../stream"
 
-export class Transformer<T, O = T>
-  implements StreamProducer<T>, StreamConsumer<O>
-{
+export class Mapper<T, O = T> implements StreamProducer<T>, StreamConsumer<O> {
   private readonly stream = Stream.create<O>()
 
   public constructor(private readonly mapper: (value: T) => O) {}

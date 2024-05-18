@@ -2,9 +2,9 @@ import { beforeEach, afterEach, describe, expect, test, vi } from "vitest"
 import {
   ChannelClosedAlreadyException,
   ChannelWasClosedException,
-} from "./exception"
+} from "../exception"
 import { Stream, StreamProducer, isConsumer, isProducer } from "./stream"
-import { useFakeAbortSignalTimeout } from "./utils/fake-abort-signal-timeout"
+import { useFakeAbortSignalTimeout } from "../utils/fake-abort-signal-timeout"
 
 describe("Stream", () => {
   useFakeAbortSignalTimeout()

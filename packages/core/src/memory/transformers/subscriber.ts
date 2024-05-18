@@ -1,4 +1,4 @@
-import { StreamProducer } from "./stream"
+import { StreamProducer } from "../stream"
 
 export class Subscriber<T> implements StreamProducer<T> {
   public constructor(private readonly callback: (value: T) => void) {}
